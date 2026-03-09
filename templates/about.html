@@ -1,10 +1,159 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block content %}
-<div class="py-5 text-center">
-    <h1 class="fw-bold display-5">About Inventory SaaS</h1>
-    <p class="lead text-muted mt-3">
-        Inventory SaaS is a modern solution to manage stock, track expiry dates, handle orders, and generate invoices efficiently.
-    </p>
-</div>
+
+<!-- Hero -->
+<section class="py-5 text-center bg-light">
+    <div class="container">
+        <h1 class="fw-bold display-5">About Inventory SaaS</h1>
+        <p class="lead text-muted mt-3 mx-auto" style="max-width:700px;">
+            Inventory SaaS is a modern platform designed to simplify inventory management,
+            streamline order tracking, and automate invoicing for businesses of all sizes.
+        </p>
+    </div>
+</section>
+
+
+<!-- What We Do -->
+<section class="container py-5">
+    <div class="row align-items-center">
+
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-3">What Our Platform Does</h2>
+            <p class="text-muted">
+                Inventory SaaS provides businesses with a powerful yet easy-to-use system
+                to manage products, monitor stock levels, track expiry dates, handle orders,
+                and generate professional invoices — all from one centralized dashboard.
+            </p>
+
+            <p class="text-muted">
+                Instead of using multiple spreadsheets or disconnected tools, businesses
+                can operate their entire inventory workflow through a single cloud-based platform.
+                This improves efficiency, accuracy, and overall operational control.
+            </p>
+        </div>
+
+        <div class="col-md-6 text-center">
+            <img src="/static/images/dashboard.png" class="img-fluid rounded shadow" alt="Dashboard">
+        </div>
+
+    </div>
+</section>
+
+
+<!-- Problems We Solve -->
+<section class="bg-light py-5">
+    <div class="container">
+
+        <h2 class="fw-bold text-center mb-5">Problems We Solve</h2>
+
+        <div class="row text-center g-4">
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h4 class="fw-bold">Stock Mismanagement</h4>
+                    <p class="text-muted">
+                        Many businesses struggle with inaccurate stock records.
+                        Our platform provides real-time stock updates so you always
+                        know exactly what inventory you have available.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h4 class="fw-bold">Expired Products</h4>
+                    <p class="text-muted">
+                        Expired inventory leads to wasted money and lost revenue.
+                        Our system tracks product expiry dates and alerts you
+                        before items expire.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h4 class="fw-bold">Manual Invoicing</h4>
+                    <p class="text-muted">
+                        Creating invoices manually takes time and introduces errors.
+                        Our instant invoice generation ensures fast, accurate,
+                        and professional billing.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- Who It's For -->
+<section class="container py-5">
+    <div class="row align-items-center">
+
+        <div class="col-md-6 text-center">
+            <img src="{% static 'images/Product.png' %}" class="img-fluid screenshot-img" alt="Product Table">
+        </div>
+
+        <div class="col-md-6">
+            <h2 class="fw-bold mb-3">Who This Platform Is For</h2>
+
+            <p class="text-muted">
+                Inventory SaaS is designed for businesses that need a reliable
+                way to manage inventory and orders without complex systems.
+            </p>
+
+            <ul class="text-muted">
+                <li>Retail stores</li>
+                <li>Wholesale distributors</li>
+                <li>E-commerce businesses</li>
+                <li>Pharmacies and expiry-sensitive industries</li>
+                <li>Small and medium-sized businesses</li>
+            </ul>
+
+            <p class="text-muted">
+                Whether you're managing hundreds of products or thousands,
+                the platform is built to scale with your operations.
+            </p>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- Mission -->
+<section class="bg-primary text-white py-5">
+    <div class="container text-center">
+
+        <h2 class="fw-bold mb-3">Our Mission</h2>
+
+        <p class="mx-auto" style="max-width:750px;">
+            Our mission is to help businesses operate more efficiently by providing
+            simple yet powerful tools for inventory control, order management,
+            and financial documentation. We believe businesses should spend less
+            time managing spreadsheets and more time growing their operations.
+        </p>
+
+    </div>
+</section>
+
+
+<!-- CTA -->
+<section class="py-5 text-center">
+    <div class="container">
+
+        <h3 class="fw-bold mb-3">Start Managing Your Inventory Smarter</h3>
+
+        <p class="text-muted mb-4">
+            Join businesses that are already simplifying their operations with our platform.
+        </p>
+
+        <a href="/signup/" class="btn btn-primary btn-lg px-5">
+            Get Started
+        </a>
+
+    </div>
+</section>
+
 {% endblock %}
