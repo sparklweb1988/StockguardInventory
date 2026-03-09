@@ -2,7 +2,7 @@ arabic-reshaper==3.0.0
 asgiref==3.11.1
 asn1crypto==1.5.1
 certifi==2026.2.25
-cffi==1.15.1
+cffi==2.0.0
 charset-normalizer==3.4.4
 cryptography==46.0.5
 cssselect2==0.9.0
