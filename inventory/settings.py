@@ -119,17 +119,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-# Static files URL
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
-# Folder where collectstatic will gather files
+# Folder where collectstatic will gather all static files
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Additional static folders
-# STATICFILES_DIRS = [
-#      os.path.join(BASE_DIR, 'static')
-#  ]
+# Include your local static folder(s)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # <-- make sure this exists
+]
 
-# # WhiteNoise settings 
+# WhiteNoise settings for serving static files in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 AUTH_USER_MODEL = "core.User"
