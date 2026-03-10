@@ -47,6 +47,6 @@ urlpatterns = [
     
     
     # pdf
-    path("invoice/<int:order_id>/pdf/", views.invoice_pdf_view, name="invoice_pdf_view"),
+    #path("invoice/<int:order_id>/pdf/", views.invoice_pdf_view, name="invoice_pdf_view"),
 
 ]

@@ -47,7 +47,7 @@
 
     <!-- Buttons to view/download PDF -->
     <div class="mt-4">
-        <a href="{% url 'invoice_pdf_view' order.id %}" class="btn btn-success">Download PDF</a>
+        <button onclick="window.print()">Print / Save as PDF</button>
         <a href="{% url 'order_list'%}" class="btn btn-secondary w-100 mt-3">Back to order</a>
     </div>
 </div>

@@ -4,42 +4,93 @@
 {% block content %}
 
 <style>
-.screenshot-img{
-    border: 3px solid #dee2e6;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-    transition: transform 0.3s ease;
-}
+    .screenshot-img {
+        border: 3px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+        transition: transform 0.3s ease;
+    }
 
-.screenshot-img:hover{
-    transform: scale(1.02);
-}
+    .screenshot-img:hover {
+        transform: scale(1.02);
+    }
+
+
+
+    .hero-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .screenshot-img {
+        border: 3px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+        transition: transform 0.3s ease;
+    }
+
+    .screenshot-img:hover {
+        transform: scale(1.02);
+    }
+
+    #mar {
+        margin-top: 100px;
+    }
 </style>
 
 
 <!-- Hero Section -->
-<section class="text-center py-5 bg-light">
-    <h1 class="fw-bold display-4">Smart Inventory Management for Modern Businesses</h1>
+<section class="hero-section bg-light">
 
-    <div class="mx-auto" style="max-width: 600px;">
-        <p class="lead text-muted mt-3">
-            Seamlessly track stock, manage expiry dates, and generate invoices — all in one intuitive and powerful SaaS platform.
-        </p>
-        <p class="text-muted mb-4">
-            Whether you're a small business or a growing enterprise, our system is built to scale with your needs.
-        </p>
+    <div class="container h-100">
+
+        <div class="row h-100 align-items-center">
+
+            <!-- Image Left -->
+            <div class="col-md-6 text-center mb-4 mb-md-0">
+                <img src="{% static 'images/Invoice.png' %}" class="img-fluid screenshot-img"
+                    alt="Dashboard Screenshot">
+            </div>
+
+            <!-- Text Right -->
+            <div class="col-md-6">
+
+                <h1 class="fw-bold display-4">
+                    Stockpilot Management for Modern Businesses
+                </h1>
+
+                <p class="lead text-muted mt-3">
+                    Seamlessly track stock, manage expiry dates, and generate invoices —
+                    all in one intuitive and powerful platform.
+                </p>
+
+                <p class="text-muted mb-4">
+                    Whether you're a small business or a growing enterprise,
+                    our system is built to scale with your needs.
+                </p>
+
+                {% if not user.is_authenticated %}
+                <a href="/signup/" class="btn btn-primary btn-lg">
+                    Get Started
+                </a>
+                {% else %}
+                <a href="/dashboard/" class="btn btn-success btn-lg">
+                    Go to Dashboard
+                </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+
     </div>
 
-    {% if not user.is_authenticated %}
-        <a href="/signup/" class="btn btn-primary btn-lg mt-3">Get Started</a>
-    {% else %}
-        <a href="/dashboard/" class="btn btn-success btn-lg mt-3">Go to Dashboard</a>
-    {% endif %}
 </section>
 
 
 <!-- App Screenshots Section -->
-<section class="container my-5">
+<section class="container my-5" id='mar'>
 
     <h2 class="text-center mb-5">See the Platform in Action</h2>
 
@@ -155,7 +206,7 @@
 
 
 <!-- Key Features Section -->
-<section class="container my-5">
+<section class="container my-5 pt-5" id='mar'>
 
     <h2 class="text-center mb-4">Key Features</h2>
 
@@ -205,7 +256,7 @@
 
 
 <!-- Benefits Section -->
-<section class="bg-primary text-white py-5">
+<section class="bg-primary text-white py-5" id='mar'>
 
     <div class="container">
 
@@ -296,7 +347,7 @@
 
 
 <!-- Final CTA -->
-<section class="text-center py-5 bg-light">
+<section class="text-center py-5 bg-light pt-5" id='mar'>
 
     <h3 class="display-5">Ready to Simplify Your Inventory Management?</h3>
 

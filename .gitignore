@@ -1,0 +1,54 @@
+# Python
+
+**pycache**/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+
+venv/
+env/
+ENV/
+.venv/
+
+# PythonAnywhere virtualenvs
+
+.virtualenvs/
+
+# Django
+
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Environment variables
+
+.env
+.env.*
+
+# VS Code
+
+.vscode/
+
+# PyCharm
+
+.idea/
+
+# Mac
+
+.DS_Store
+
+# Windows
+
+Thumbs.db
+
+# PythonAnywhere deployment
+
+*.pid
+*.sock
+
+# Temporary files
+
+*.tmp
+*.bak
