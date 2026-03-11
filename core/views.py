@@ -7,24 +7,35 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from .models import Product, Customer, Order, OrderItem, Batch, Invoice, Business
 from django.http import HttpResponse
-
+from django.db.models import Sum, F, ExpressionWrapper, DecimalField
+from django.utils.timezone import now
+from datetime import datetime
+from datetime import timedelta
+import requests
+from django.conf import settings
+from collections import defaultdict
 User = get_user_model()  
+
+
+
 
 # --------------------------
 # Signup View
 # --------------------------
+
+
+User = get_user_model()
+
 def signup(request):
-    User = get_user_model() 
     if request.method == "POST":
-        username = request.POST["username"]
-        email = request.POST["email"]
-        password = request.POST["password"]
-        business_name = request.POST["business_name"]
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        business_name = request.POST.get("business_name")
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists")
             return redirect("signup")
-
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists")
             return redirect("signup")
@@ -32,48 +43,186 @@ def signup(request):
         # Create Business
         business = Business.objects.create(name=business_name)
 
-        # Create User and link to business
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
+        # Create User (no plan active yet)
+        user = User.objects.create_user(username=username, email=email, password=password)
         user.business = business
+        user.subscription_end = None   # <-- no plan active
         user.save()
 
-        # Log the user in
+        # Log in
         login(request, user)
-        return redirect("dashboard")
+        messages.success(request, 'Signup successful! Please choose a plan to start.')
 
-    return render(request, "signup.html")
+        # Redirect to pricing first
+        return redirect('pricing')
+
+    return render(request, 'signup.html')
+
+
 
 
 # --------------------------
 # Login View
 # --------------------------
+
+
+
+
+
 def login_view(request):
     if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-
+        username = request.POST.get("username")
+        password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
-            return redirect("dashboard")
-        else:
-            messages.error(request, "Invalid username or password")
-            return redirect("login")
+            messages.success(request, 'Login successful!')
 
-    return render(request, "login.html")
+            # Check subscription
+            now_time = timezone.now()
+            subscription_end = getattr(user, 'subscription_end', None)
+
+            if subscription_end and subscription_end > now_time:
+                return redirect('dashboard')
+            else:
+                return redirect('pricing')
+        else:
+            messages.error(request, 'Invalid username or password')
+            return redirect('signin')
+
+    return render(request, 'login.html')
+
+
+
+
+
 
 
 # --------------------------
 # Logout View
 # --------------------------
+@login_required
 def logout_view(request):
     logout(request)
     return redirect("home")
+
+
+
+
+
+
+# -------------------------
+# Payment Success (after Paystack)
+# -------------------------
+PLAN_DURATION_DAYS = {
+    'starter': 30,
+    'professional': 30,
+    'business': 30
+}
+
+def payment_success(request, plan_name):
+    user = request.user
+    plan_name = plan_name.lower()
+
+    if plan_name not in PLAN_DURATION_DAYS:
+        messages.error(request, "Invalid plan.")
+        return redirect("dashboard")
+
+    now = timezone.now()
+    duration_days = PLAN_DURATION_DAYS[plan_name]
+
+    # Extend plan if already active
+    if user.subscription_end and user.subscription_end > now:
+        new_end = user.subscription_end + timedelta(days=duration_days)
+    else:
+        new_end = now + timedelta(days=duration_days)
+
+    user.subscription_end = new_end
+    user.subscription_plan = plan_name   # optional field to store plan
+    user.save()
+
+    messages.success(
+        request,
+        f"Payment successful! You are now on the {plan_name.title()} plan until {new_end.strftime('%d %b %Y')}."
+    )
+    return redirect("dashboard")
+
+
+
+# --------------------------
+# Pricing Page
+# --------------------------
+
+def pricing_view(request):
+
+    if request.user.subscription_active:
+        return redirect("dashboard")
+
+    plans = [
+        {"name": "Starter", "pay_url": "https://paystack.shop/pay/gzlmfb1q8x"},
+        {"name": "Professional", "pay_url": "https://paystack.shop/pay/b2hi35ebej"},
+        {"name": "Business", "pay_url": "https://paystack.shop/pay/058chi19tu"},
+    ]
+
+    return render(request, "pricing.html", {"plans": plans})
+
+
+
+
+
+
+
+def verify_payment(request):
+
+    reference = request.GET.get("reference")
+
+    if not reference:
+        messages.error(request, "Payment reference missing")
+        return redirect("pricing")
+
+    url = f"https://api.paystack.co/transaction/verify/{reference}"
+
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+    }
+
+    response = requests.get(url, headers=headers)
+    data = response.json()
+
+    if data["status"] and data["data"]["status"] == "success":
+
+        amount = data["data"]["amount"] / 100
+        user = request.user
+
+        # Determine plan based on amount
+        if amount == 5000:
+            plan = "starter"
+        elif amount == 10000:
+            plan = "professional"
+        elif amount == 25000:
+            plan = "business"
+        else:
+            messages.error(request, "Invalid payment amount")
+            return redirect("pricing")
+
+        duration = 30
+        now = timezone.now()
+
+        if user.subscription_end and user.subscription_end > now:
+            new_end = user.subscription_end + timedelta(days=duration)
+        else:
+            new_end = now + timedelta(days=duration)
+
+        user.plan = plan
+        user.subscription_end = new_end
+        user.save()
+
+        messages.success(request, "Payment verified! Subscription activated.")
+        return redirect("dashboard")
+
+    messages.error(request, "Payment verification failed")
+    return redirect("pricing")
+
 
 
 # --------------------------
@@ -83,28 +232,97 @@ def home(request):
     return render(request, "home.html")
 
 
+
+
+
+
+
+# -------------------------
+
+
+@login_required
 def dashboard(request):
-    business = request.user.business
+    user = request.user
+    business = getattr(user, 'business', None)
+
+    now_time = timezone.now()
+    current_month = now_time.month
+    current_year = now_time.year
+
+    # Summary counts
     total_products = Product.objects.filter(business=business).count()
     total_customers = Customer.objects.filter(business=business).count()
     total_orders = Order.objects.filter(business=business).count()
+
+    # Orders this month
+    orders_this_month = Order.objects.filter(
+        business=business,
+        status='paid',
+        created_at__year=current_year,
+        created_at__month=current_month
+    )
+
+    total_sales = orders_this_month.aggregate(total=Sum('total'))['total'] or 0
+    order_items = OrderItem.objects.filter(order__in=orders_this_month)
+    total_profit = sum(
+        (item.total_price - (item.product.cost_price * item.quantity))
+        for item in order_items
+    )
+
+    # Product-wise sales/profit
+    product_data = defaultdict(lambda: {'sales': 0, 'profit': 0})
+    for item in order_items:
+        product_data[item.product.name]['sales'] += item.total_price
+        product_data[item.product.name]['profit'] += item.total_price - (item.product.cost_price * item.quantity)
+
+    product_labels = list(product_data.keys())
+    product_sales_values = [data['sales'] for data in product_data.values()]
+    product_profit_values = [data['profit'] for data in product_data.values()]
+
+    # Subscription status
+    subscription_active = user.subscription_end and user.subscription_end > now_time
+    subscription_end = user.subscription_end
+
+    # Available plans
+    plans = [
+        {"name": "Starter", "pay_url": "https://paystack.shop/pay/gzu54tykc6"},
+        {"name": "Professional", "pay_url": "https://paystack.shop/pay/b2hi35ebej"},
+        {"name": "Business", "pay_url": "https://paystack.shop/pay/058chi19tu"},
+    ]
 
     context = {
         "total_products": total_products,
         "total_customers": total_customers,
         "total_orders": total_orders,
+        "total_sales": total_sales,
+        "total_profit": total_profit,
+        "product_labels": product_labels,
+        "product_sales_values": product_sales_values,
+        "product_profit_values": product_profit_values,
+        "profile": user,               # user acts as profile in template
+        "subscription_active": subscription_active,
+        "subscription_end": subscription_end,
+        "plans": plans,
+        "now": now_time,
     }
+
     return render(request, "dashboard.html", context)
+
 
 
 # ==============================
 # PRODUCTS
 # ==============================
+
+
+@login_required
 def product_list(request):
     products = Product.objects.filter(business=request.user.business)
     return render(request, "product_list.html", {"products": products})
 
 
+
+@login_required
 def product_create(request):
     if request.method == "POST":
         Product.objects.create(
@@ -118,6 +336,9 @@ def product_create(request):
     return render(request, "product_create.html")
 
 
+
+
+@login_required
 def product_update(request, id):
     product = get_object_or_404(Product, id=id, business=request.user.business)
     if request.method == "POST":
@@ -130,6 +351,9 @@ def product_update(request, id):
     return render(request, "product_update.html", {"product": product})
 
 
+
+
+@login_required
 def product_delete(request, id):
     product = get_object_or_404(Product, id=id, business=request.user.business)
     if request.method == "POST":
@@ -141,12 +365,16 @@ def product_delete(request, id):
 # ==============================
 # BATCH
 # ==============================
+@login_required
 def batch_list(request, product_id):
     product = get_object_or_404(Product, pk=product_id, business=request.user.business)
     batches = product.batches.all()
     return render(request, "batch_list.html", {"product": product, "batches": batches})
 
 
+
+
+@login_required
 def batch_create(request, product_id):
     product = get_object_or_404(Product, pk=product_id, business=request.user.business)
     if request.method == "POST":
@@ -161,6 +389,11 @@ def batch_create(request, product_id):
     return render(request, "batch_create.html", {"product": product})
 
 
+
+
+
+
+@login_required
 def batch_update(request, pk):
     batch = get_object_or_404(Batch, pk=pk, business=request.user.business)
     if request.method == "POST":
@@ -172,6 +405,9 @@ def batch_update(request, pk):
     return render(request, "batch_update.html", {"batch": batch})
 
 
+
+
+@login_required
 def batch_delete(request, pk):
     batch = get_object_or_404(Batch, pk=pk, business=request.user.business)
     product_id = batch.product.id
@@ -182,11 +418,18 @@ def batch_delete(request, pk):
 # ==============================
 # CUSTOMERS
 # ==============================
+
+
+
+@login_required
 def customer_list(request):
     customers = Customer.objects.filter(business=request.user.business)
     return render(request, "customer_list.html", {"customers": customers})
 
 
+
+
+@login_required
 def customer_create(request):
     if request.method == "POST":
         Customer.objects.create(
@@ -198,6 +441,9 @@ def customer_create(request):
     return render(request, "customer_create.html")
 
 
+
+
+@login_required
 def customer_update(request, id):
     customer = get_object_or_404(Customer, id=id, business=request.user.business)
     if request.method == "POST":
@@ -208,6 +454,9 @@ def customer_update(request, id):
     return render(request, "customer_update.html", {"customer": customer})
 
 
+
+
+@login_required
 def customer_delete(request, id):
     customer = get_object_or_404(Customer, id=id, business=request.user.business)
     if request.method == "POST":
@@ -219,11 +468,12 @@ def customer_delete(request, id):
 # ==============================
 # ORDERS
 # ==============================
+@login_required
 def order_list(request):
     orders = Order.objects.filter(business=request.user.business)
     return render(request, "order_list.html", {"orders": orders})
 
-
+@login_required
 def order_create(request):
     products = Product.objects.filter(business=request.user.business)
     customers = Customer.objects.filter(business=request.user.business)
@@ -271,7 +521,7 @@ def order_create(request):
 
     return render(request, "order_create.html", {"products": products, "customers": customers})
 
-
+@login_required
 def change_order_status(request, pk):
     business = request.user.business
     order = get_object_or_404(Order, pk=pk, business=business)
@@ -327,11 +577,12 @@ def contact(request):
 # ==============================
 # INVOICES (HTML Only)
 # ==============================
+@login_required
 def invoice_list(request):
     invoices = Invoice.objects.filter(order__business=request.user.business)
     return render(request, "invoice_list.html", {"invoices": invoices})
 
-
+@login_required
 def invoice_view(request, order_id):
     order = get_object_or_404(Order, pk=order_id, business=request.user.business)
     invoice, created = Invoice.objects.get_or_create(order=order)
@@ -341,8 +592,8 @@ def invoice_view(request, order_id):
         "invoice": invoice,
         "order": order,
         "order_items": order_items
-<<<<<<< HEAD
+
     })
-=======
-    })
->>>>>>> c660c77c6b7cced39bf71bd74af5a94a76ce4113
+
+  
+

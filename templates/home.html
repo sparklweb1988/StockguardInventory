@@ -4,406 +4,224 @@
 {% block content %}
 
 <style>
-
-    .screenshot-img {
-        border: 3px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-        transition: transform 0.3s ease;
-    }
-
-    .screenshot-img:hover {
-        transform: scale(1.02);
-    }
-
-
-
-    .hero-section {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-    }
-
-    .screenshot-img {
-        border: 3px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-        transition: transform 0.3s ease;
-    }
-
-    .screenshot-img:hover {
-        transform: scale(1.02);
-    }
-
-    #mar {
-        margin-top: 100px;
-    }
-
-.screenshot-img{
+/* Screenshot images */
+.screenshot-img {
     border: 3px solid #dee2e6;
     border-radius: 10px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.18);
     transition: transform 0.3s ease;
 }
-
-.screenshot-img:hover{
+.screenshot-img:hover {
     transform: scale(1.02);
 }
 
+/* Hero section */
+.hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+/* Section margin top */
+.section-gap {
+    margin-top: 80px;
+}
 </style>
 
-
 <!-- Hero Section -->
-
 <section class="hero-section bg-light">
-
     <div class="container h-100">
-
         <div class="row h-100 align-items-center">
-
             <!-- Image Left -->
             <div class="col-md-6 text-center mb-4 mb-md-0">
-                <img src="{% static 'images/Invoice.png' %}" class="img-fluid screenshot-img"
-                    alt="Dashboard Screenshot">
+                <img src="{% static 'images/das.png' %}" class="img-fluid screenshot-img" alt="Dashboard Screenshot">
             </div>
-
             <!-- Text Right -->
             <div class="col-md-6">
-
-                <h1 class="fw-bold display-4">
-                    Stockpilot Management for Modern Businesses
-                </h1>
-
+                <h1 class="fw-bold display-4">StockGuard Inventory Management for Modern Businesses</h1>
                 <p class="lead text-muted mt-3">
-                    Seamlessly track stock, manage expiry dates, and generate invoices —
-                    all in one intuitive and powerful platform.
+                    Seamlessly track stock, manage expiry dates, and generate invoices — all in one intuitive and powerful platform.
                 </p>
-
                 <p class="text-muted mb-4">
-                    Whether you're a small business or a growing enterprise,
-                    our system is built to scale with your needs.
+                    Whether you're a small business or a growing enterprise, our system is built to scale with your needs.
                 </p>
-
                 {% if not user.is_authenticated %}
-                <a href="/signup/" class="btn btn-primary btn-lg">
-                    Get Started
-                </a>
+                    <a href="/signup/" class="btn btn-primary btn-lg">Get Started</a>
                 {% else %}
-                <a href="/dashboard/" class="btn btn-success btn-lg">
-                    Go to Dashboard
-                </a>
+                    <a href="/dashboard/" class="btn btn-success btn-lg">Go to Dashboard</a>
                 {% endif %}
-
             </div>
-
         </div>
-
     </div>
-
-
-<section class="text-center py-5 bg-light">
-    <h1 class="fw-bold display-4">Smart Inventory Management for Modern Businesses</h1>
-
-    <div class="mx-auto" style="max-width: 600px;">
-        <p class="lead text-muted mt-3">
-            Seamlessly track stock, manage expiry dates, and generate invoices — all in one intuitive and powerful SaaS platform.
-        </p>
-        <p class="text-muted mb-4">
-            Whether you're a small business or a growing enterprise, our system is built to scale with your needs.
-        </p>
-    </div>
-
-    {% if not user.is_authenticated %}
-        <a href="/signup/" class="btn btn-primary btn-lg mt-3">Get Started</a>
-    {% else %}
-        <a href="/dashboard/" class="btn btn-success btn-lg mt-3">Go to Dashboard</a>
-    {% endif %}
 </section>
 
-
-<!-- App Screenshots Section -->
-
-<section class="container my-5" id='mar'>
-
-<section class="container my-5">
-
+<!-- App Screenshots -->
+<section class="container section-gap">
     <h2 class="text-center mb-5">See the Platform in Action</h2>
 
     <!-- Dashboard -->
     <div class="d-flex flex-column flex-md-row align-items-center mb-5">
-
         <div class="flex-fill p-3">
-            <img src="{% static 'images/Dashboard.png' %}" class="img-fluid screenshot-img" alt="Dashboard">
+            <img src="{% static 'images/das.png' %}" class="img-fluid screenshot-img" alt="Dashboard">
         </div>
-
         <div class="flex-fill p-3">
             <h3>Powerful Business Dashboard</h3>
             <p class="text-muted">
                 Get a real-time overview of your entire business in one place.
-                Monitor stock levels, recent orders, low stock alerts,
-                and expiring products instantly.
+                Monitor stock levels, recent orders, low stock alerts, and expiring products instantly.
             </p>
             <p class="text-muted">
-                The dashboard helps you make smarter decisions by showing
-                key inventory insights and important notifications.
+                The dashboard helps you make smarter decisions by showing key inventory insights and important notifications.
             </p>
         </div>
-
     </div>
-
 
     <!-- Product Table -->
     <div class="d-flex flex-column flex-md-row-reverse align-items-center mb-5">
-
         <div class="flex-fill p-3">
             <img src="{% static 'images/Product.png' %}" class="img-fluid screenshot-img" alt="Product Table">
         </div>
-
         <div class="flex-fill p-3">
             <h3>Smart Product Management</h3>
-
             <p class="text-muted">
                 Easily manage your products with an organized table view.
-                Track quantities, batch numbers, and expiration dates
-                while maintaining accurate inventory levels.
+                Track quantities, batch numbers, and expiration dates while maintaining accurate inventory levels.
             </p>
-
             <p class="text-muted">
-                Our system also provides <strong>Low Stock Alerts</strong>,
-                notifying you when product quantities fall below your
-                defined threshold so you can restock before running out.
+                Our system also provides <strong>Low Stock Alerts</strong>, notifying you when product quantities fall below your defined threshold.
             </p>
-
             <ul class="text-muted">
                 <li>Real-time stock tracking</li>
                 <li>Automatic low stock alerts</li>
                 <li>Batch and expiry date tracking</li>
                 <li>Easy product table management</li>
             </ul>
-
         </div>
-
     </div>
 
-
-    <!-- Order Table -->
+    <!-- Orders -->
     <div class="d-flex flex-column flex-md-row align-items-center mb-5">
-
         <div class="flex-fill p-3">
             <img src="{% static 'images/Orders.png' %}" class="img-fluid screenshot-img" alt="Orders Table">
         </div>
-
         <div class="flex-fill p-3">
             <h3>Order Tracking Made Simple</h3>
-
             <p class="text-muted">
-                Keep track of every order placed by your customers
-                in a clean and organized order table.
+                Keep track of every order placed by your customers in a clean and organized order table.
             </p>
-
             <p class="text-muted">
-                View order status, quantities, and product details
-                quickly while maintaining a smooth workflow
-                for your business operations.
+                View order status, quantities, and product details quickly while maintaining a smooth workflow.
             </p>
-
         </div>
-
     </div>
-
 
     <!-- Invoice Generator -->
     <div class="d-flex flex-column flex-md-row-reverse align-items-center">
-
         <div class="flex-fill p-3">
             <img src="{% static 'images/Invoice.png' %}" class="img-fluid screenshot-img" alt="Invoice Generator">
         </div>
-
         <div class="flex-fill p-3">
             <h3>Instant Invoice Generation</h3>
-
             <p class="text-muted">
                 Generate professional invoices instantly for your customers.
             </p>
-
             <p class="text-muted">
-                The system automatically calculates totals,
-                taxes, and discounts while creating
-                clean and professional invoices ready to send.
+                The system automatically calculates totals, taxes, and discounts while creating clean and professional invoices ready to send.
             </p>
-
         </div>
-
     </div>
-
 </section>
 
-
-
-<!-- Key Features Section -->
-
-<section class="container my-5 pt-5" id='mar'>
-
-<section class="container my-5">
-
+<!-- Key Features -->
+<section class="container section-gap">
     <h2 class="text-center mb-4">Key Features</h2>
-
     <div class="row text-center">
-
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h4 class="card-title">Expiry Tracking</h4>
-                    <p class="card-text text-muted">
-                        Never lose money from expired stock again.
-                        Our platform tracks expiration dates
-                        and alerts you before products expire.
-                    </p>
+                    <p class="card-text text-muted">Never lose money from expired stock again. Our platform tracks expiration dates and alerts you before products expire.</p>
                 </div>
             </div>
         </div>
-
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h4 class="card-title">Invoice Generation</h4>
-                    <p class="card-text text-muted">
-                        Create professional invoices instantly
-                        with automatic totals, taxes, and discounts.
-                    </p>
+                    <p class="card-text text-muted">Create professional invoices instantly with automatic totals, taxes, and discounts.</p>
                 </div>
             </div>
         </div>
-
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h4 class="card-title">Multi-Business SaaS</h4>
-                    <p class="card-text text-muted">
-                        Manage multiple businesses from a single account
-                        while keeping data secure and isolated.
-                    </p>
+                    <p class="card-text text-muted">Manage multiple businesses from a single account while keeping data secure and isolated.</p>
                 </div>
             </div>
         </div>
-
     </div>
-
 </section>
 
-
-
-<!-- Benefits Section -->
-
-<section class="bg-primary text-white py-5" id='mar'>
-
-<section class="bg-primary text-white py-5">
-
-
+<!-- Benefits -->
+<section class="bg-primary text-white py-5 section-gap">
     <div class="container">
-
         <h2 class="text-center mb-4">Why Choose Our Platform?</h2>
-
         <div class="mx-auto" style="max-width: 800px;">
-
             <div class="row text-center">
-
                 <div class="col-md-6 mb-4">
                     <h4>Streamlined Operations</h4>
-                    <p>
-                        Simplify complex inventory and order management tasks
-                        so you can focus on growing your business.
-                    </p>
+                    <p>Simplify complex inventory and order management tasks so you can focus on growing your business.</p>
                 </div>
-
                 <div class="col-md-6 mb-4">
                     <h4>Real-Time Updates</h4>
-                    <p>
-                        Monitor stock levels, batch tracking,
-                        and order status in real-time from anywhere.
-                    </p>
+                    <p>Monitor stock levels, batch tracking, and order status in real-time from anywhere.</p>
                 </div>
-
             </div>
-
             <div class="row text-center">
-
                 <div class="col-md-6 mb-4">
                     <h4>Scalability</h4>
-                    <p>
-                        Add new products, customers, and orders
-                        as your business grows.
-                    </p>
+                    <p>Add new products, customers, and orders as your business grows.</p>
                 </div>
-
                 <div class="col-md-6 mb-4">
                     <h4>Customizable Features</h4>
-                    <p>
-                        Customize invoices, branding, and workflows
-                        to match your business needs.
-                    </p>
+                    <p>Customize invoices, branding, and workflows to match your business needs.</p>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </section>
 
-
-
 <!-- Testimonials -->
-<section class="container my-5">
-
+<section class="container section-gap">
     <h2 class="text-center mb-4">What Our Customers Say</h2>
-
     <div class="row">
-
         <div class="col-md-4 text-center">
             <blockquote class="blockquote">
                 <p>"This platform completely transformed how we manage inventory."</p>
                 <footer class="blockquote-footer">Jane Doe, CEO of XYZ Corp.</footer>
             </blockquote>
         </div>
-
         <div class="col-md-4 text-center">
             <blockquote class="blockquote">
                 <p>"Invoice generation is fast and extremely professional."</p>
                 <footer class="blockquote-footer">John Smith, Owner of ABC Enterprises</footer>
             </blockquote>
         </div>
-
         <div class="col-md-4 text-center">
             <blockquote class="blockquote">
                 <p>"Managing multiple stores is now effortless."</p>
                 <footer class="blockquote-footer">Sarah Lee, Retail Solutions</footer>
             </blockquote>
         </div>
-
     </div>
-
 </section>
 
-
-
 <!-- Final CTA -->
-
-<section class="text-center py-5 bg-light pt-5" id='mar'>
-
-<section class="text-center py-5 bg-light">
-
-
+<section class="text-center py-5 bg-light section-gap">
     <h3 class="display-5">Ready to Simplify Your Inventory Management?</h3>
-
-    <p class="lead text-muted mb-4">
-        Sign up now and take control of your business
-        with our powerful SaaS platform.
-    </p>
-
+    <p class="lead text-muted mb-4">Sign up now and take control of your business with our powerful SaaS platform.</p>
     <a href="/signup/" class="btn btn-primary btn-lg">Get Started</a>
-
 </section>
 
 {% endblock %}

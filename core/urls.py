@@ -48,5 +48,13 @@ urlpatterns = [
     
     # pdf
     #path("invoice/<int:order_id>/pdf/", views.invoice_pdf_view, name="invoice_pdf_view"),
+    #path('payment/success/', views.dashboard_redirect, name='payment_success'),
+    #path("paystack-redirect/", views.paystack_redirect, name="paystack_redirect"),
+    #path("dashboard-redirect/", views.dashboard_redirect, name="dashboard_redirect"),
+    
+    
+    
+    path('pricing/', views.pricing_view, name='pricing'),
+    path('payment/success/<str:plan_name>/', views.payment_success, name='payment_success'),
 
 ]

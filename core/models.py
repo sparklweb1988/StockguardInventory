@@ -1,11 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-
+from datetime import timedelta
 
 # ==========================
 # BUSINESS
 # ==========================
+
+
 class Business(models.Model):
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -17,16 +19,50 @@ class Business(models.Model):
 # ==========================
 # CUSTOM USER
 # ==========================
+
+
+
 class User(AbstractUser):
     business = models.ForeignKey(
-        Business,
+        'Business',
         on_delete=models.CASCADE,
         null=True,
         blank=True
     )
 
+    PLAN_CHOICES = (
+        ('starter', 'Starter'),
+        ('professional', 'Professional'),
+        ('business', 'Business'),
+    )
+
+    plan = models.CharField(
+        max_length=20,
+        choices=PLAN_CHOICES,
+        default='starter'
+    )
+
+    subscription_end = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    @property
+    def subscription_active(self):
+        if self.subscription_end:
+            return self.subscription_end > timezone.now()
+        return False
+    
+    
 
 
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reference = models.CharField(max_length=200)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    plan = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
 # ==========================
 # PRODUCT
 # ==========================
@@ -110,21 +146,25 @@ class Order(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     order_number = models.CharField(max_length=50)
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)  # ⭐ add this
 
     def calculate_total(self):
         items = self.items.all()
         self.subtotal = sum(item.total_price for item in items)
         self.total = self.subtotal
         self.save()
-    
-    
-        
-    def __str__(self):
-        return self.customer.name
 
+    def __str__(self):
+        return self.customer.name if self.customer else self.order_number
+    
+    
+    
 # ==========================
 # ORDER ITEM
 # ==========================

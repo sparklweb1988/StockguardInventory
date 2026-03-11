@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <h2>Choose a Plan</h2>
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h5>{{ plan.name }}</h5>
+                    <p class="h4">₦{{ plan.price|floatformat:2 }}</p>
+                    <a href="{{ plan.pay_url }}" class="btn btn-primary" target="_blank">
+                        Pay with Paystack
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
