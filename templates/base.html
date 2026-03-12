@@ -69,6 +69,13 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/contact/">Contact</a>
                 </li>
+                
+
+
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'my_pricing'%}">Pricing</a>
+                </li>
 
 
                 
@@ -91,19 +98,6 @@
     {% endblock %}
 </div>
 
-<!-- ADSENSE SECTION -->
-<div class="container my-4 text-center">
-    <!-- Replace with your actual AdSense code -->
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-XXXXXXXXXXXX"
-         data-ad-slot="YYYYYYYYYY"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div>
 
 <!-- FOOTER -->
 <footer class="bg-dark text-white py-4 mt-5">
@@ -115,6 +109,7 @@
             <a href="/terms/" class="text-white me-3">Terms</a>
             <a href="/privacy/" class="text-white me-3">Privacy</a>
             <a href="/contact/" class="text-white me-3">Contact</a>
+            <a href="{% url 'my_pricing'%}" class="text-white me-3">Pricing</a>
            
         </p>
     </div>

@@ -10,6 +10,7 @@ urlpatterns = [
     path("products/update/<int:id>/", views.product_update, name="product_update"),
     path("products/delete/<int:id>/", views.product_delete, name="product_delete"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("My_pricing/", views.My_pricing, name="my_pricing"),
   
   
     # Batch Management
@@ -43,18 +44,12 @@ urlpatterns = [
     # invoice
     
     path("invoice/<int:order_id>/", views.invoice_view, name="invoice_view"),
-   
+    path("pricing/", views.pricing, name="pricing"),
     
-    
-    # pdf
-    #path("invoice/<int:order_id>/pdf/", views.invoice_pdf_view, name="invoice_pdf_view"),
-    #path('payment/success/', views.dashboard_redirect, name='payment_success'),
-    #path("paystack-redirect/", views.paystack_redirect, name="paystack_redirect"),
-    #path("dashboard-redirect/", views.dashboard_redirect, name="dashboard_redirect"),
-    
-    
-    
-    path('pricing/', views.pricing_view, name='pricing'),
-    path('payment/success/<str:plan_name>/', views.payment_success, name='payment_success'),
-
+    path("pay/<str:plan>/", views.initialize_payment, name="pay"),
+    path("start-trial/", views.start_trial, name="start_trial"),
+    path("payment/verify/", views.verify_payment, name="verify_payment"),
+    path("paystack/webhook/", views.paystack_webhook, name="paystack_webhook"),
+    path('paystack/verify/', views.paystack_verify, name='paystack_verify'),
+    path('paystack/initialize/', views.paystack_initialize, name='paystack_initialize'),
 ]

@@ -12,15 +12,38 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-
-
-
-
-# settings.py
 from decouple import config
 
-# Paystack Secret Key
-PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
+
+SECRET_KEY = config('SECRET_KEY')
+
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY')
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY')
+PAYSTACK_BASE_URL = config('PAYSTACK_BASE_URL')
+
+
+
+
+
+PAYSTACK_PLANS = {
+    "starter": "PLN_wcrzai3si0ye2tf",
+    "professional": "PLN_t4w774bk84pvezi",
+    "business": "PLN_rflb01xe9aip51r"
+}
+
+
+
+
+
+PLAN_PRODUCT_LIMITS = {
+    "free_trial": 5,
+    "starter": 30,
+    "professional": 200,
+    "business": None,  # None means unlimited
+}
+
 
 
 
@@ -61,6 +84,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.subscription.SubscriptionRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]

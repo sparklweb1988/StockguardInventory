@@ -1,0 +1,136 @@
+{% extends 'base.html'%}
+
+{% load static %}
+{% block content %}
+<div class="container">
+    
+<!-- Pricing Plans -->
+<section class="container section-gap">
+    <h2 class="text-center mb-5">Choose Your Plan</h2>
+    <div class="row">
+
+        <!-- Free Trial Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">7-Day Free Trial</h5>
+                    <p class="card-text text-muted">
+                        Try all basic features for 7 days. No payment required.
+                    </p>
+                    <p class="h5 text-primary">₦0</p>
+                    <ul class="text-muted small mb-3">
+                        <li>Up to 5 products</li>
+                        <li>Basic product management</li>
+                        <li>Invoice generation</li>
+                        <li>Low stock alerts</li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-outline-primary mt-auto" disabled>
+                            Active Trial
+                        </button>
+                    {% else %}
+                        <a href="/signup/" class="btn btn-outline-primary mt-auto">
+                            Start Free Trial
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Starter Plan -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow h-100 border-primary">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Starter</h5>
+                    <p class="card-text text-muted">
+                        Perfect for small businesses with basic needs.
+                    </p>
+                    <p class="h5 text-primary">₦5,000</p>
+                    <ul class="text-muted small mb-3">
+                        <li>Up to 30 products</li>
+                        <li>All basic features</li>
+                        <li>Invoice & order tracking</li>
+                        <li>Low stock & expiry alerts</li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-primary mt-auto paystack-btn"
+                            data-plan="starter"
+                            data-email="{{ profile.email }}"
+                            data-amount="500000">
+                            Upgrade to Starter
+                        </button>
+                    {% else %}
+                        <a href="/signup/" class="btn btn-primary mt-auto">
+                            Signup to Access
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Plan -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow h-100 border-success">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Professional</h5>
+                    <p class="card-text text-muted">
+                        Advanced features for growing businesses.
+                    </p>
+                    <p class="h5 text-success">₦10,000</p>
+                    <ul class="text-muted small mb-3">
+                        <li>Up to 200 products</li>
+                        <li>All Starter features</li>
+                        <li>Detailed reports & analytics</li>
+                        <li>Multi-user access</li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-success mt-auto paystack-btn"
+                            data-plan="professional"
+                            data-email="{{ profile.email }}"
+                            data-amount="1000000">
+                            Upgrade to Professional
+                        </button>
+                    {% else %}
+                        <a href="/signup/" class="btn btn-success mt-auto">
+                            Signup to Access
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Plan -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow h-100 border-warning">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Business</h5>
+                    <p class="card-text text-muted">
+                        Full features for enterprises with unlimited products.
+                    </p>
+                    <p class="h5 text-warning">₦25,000</p>
+                    <ul class="text-muted small mb-3">
+                        <li>Unlimited products</li>
+                        <li>All Professional features</li>
+                        <li>Priority support</li>
+                        <li>Custom integrations</li>
+                    </ul>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-warning mt-auto paystack-btn"
+                            data-plan="business"
+                            data-email="{{ profile.email }}"
+                            data-amount="2500000">
+                            Upgrade to Business
+                        </button>
+                    {% else %}
+                        <a href="/signup/" class="btn btn-warning mt-auto">
+                            Signup to Access
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+</div>
+{% endblock %}

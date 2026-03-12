@@ -14,17 +14,24 @@ from datetime import timedelta
 import requests
 from django.conf import settings
 from collections import defaultdict
-User = get_user_model()  
+from django.urls import reverse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
 
 
 
+
+
+
+
+User = get_user_model()
 
 # --------------------------
 # Signup View
 # --------------------------
 
-
-User = get_user_model()
 
 def signup(request):
     if request.method == "POST":
@@ -43,58 +50,60 @@ def signup(request):
         # Create Business
         business = Business.objects.create(name=business_name)
 
-        # Create User (no plan active yet)
-        user = User.objects.create_user(username=username, email=email, password=password)
+        # Create User
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
         user.business = business
-        user.subscription_end = None   # <-- no plan active
         user.save()
+
+        # Start 7-day free trial
+        user.start_trial()  # uses the method in your User model
+        # This automatically sets plan='free_trial', trial_start, subscription_end
 
         # Log in
         login(request, user)
-        messages.success(request, 'Signup successful! Please choose a plan to start.')
+        messages.success(
+            request,
+            'Signup successful! Your 7-day free trial has started.'
+        )
 
-        # Redirect to pricing first
-        return redirect('pricing')
+        # Redirect to dashboard (trial is active)
+        return redirect('dashboard')
 
     return render(request, 'signup.html')
-
-
 
 
 # --------------------------
 # Login View
 # --------------------------
-
-
-
-
-
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
+
         if user is not None:
             login(request, user)
             messages.success(request, 'Login successful!')
 
-            # Check subscription
+            # Check if subscription OR trial is active
             now_time = timezone.now()
-            subscription_end = getattr(user, 'subscription_end', None)
-
-            if subscription_end and subscription_end > now_time:
+            if getattr(user, 'subscription_end', None) and user.subscription_end > now_time:
+                return redirect('dashboard')
+            elif getattr(user, 'trial_end', None) and user.trial_end > now_time:
                 return redirect('dashboard')
             else:
+                # No active subscription or trial
+                messages.info(request, "Your trial or subscription has expired. Please choose a plan.")
                 return redirect('pricing')
         else:
             messages.error(request, 'Invalid username or password')
-            return redirect('signin')
+            return redirect('login')
 
     return render(request, 'login.html')
-
-
-
-
 
 
 
@@ -111,59 +120,128 @@ def logout_view(request):
 
 
 
-# -------------------------
-# Payment Success (after Paystack)
-# -------------------------
-PLAN_DURATION_DAYS = {
-    'starter': 30,
-    'professional': 30,
-    'business': 30
-}
 
-def payment_success(request, plan_name):
+
+
+@login_required
+def initialize_payment(request, plan):
+
     user = request.user
-    plan_name = plan_name.lower()
+    plan_code = settings.PAYSTACK_PLANS.get(plan)
 
-    if plan_name not in PLAN_DURATION_DAYS:
-        messages.error(request, "Invalid plan.")
-        return redirect("dashboard")
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    now = timezone.now()
-    duration_days = PLAN_DURATION_DAYS[plan_name]
+    data = {
+        "email": user.email,
+        "plan": plan_code,
+        "callback_url": request.build_absolute_uri("/payment/verify/")
+    }
 
-    # Extend plan if already active
-    if user.subscription_end and user.subscription_end > now:
-        new_end = user.subscription_end + timedelta(days=duration_days)
-    else:
-        new_end = now + timedelta(days=duration_days)
-
-    user.subscription_end = new_end
-    user.subscription_plan = plan_name   # optional field to store plan
-    user.save()
-
-    messages.success(
-        request,
-        f"Payment successful! You are now on the {plan_name.title()} plan until {new_end.strftime('%d %b %Y')}."
+    response = requests.post(
+        f"{settings.PAYSTACK_BASE_URL}/transaction/initialize",
+        json=data,
+        headers=headers
     )
+
+    res = response.json()
+
+    if res["status"]:
+        return redirect(res["data"]["authorization_url"])
+
+
+
+
+
+
+
+@login_required
+def verify_payment(request):
+
+    reference = request.GET.get("reference")
+
+    headers = {
+        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
+    }
+
+    response = requests.get(
+        f"{settings.PAYSTACK_BASE_URL}/transaction/verify/{reference}",
+        headers=headers
+    )
+
+    res = response.json()
+
+    if res["status"] and res["data"]["status"] == "success":
+
+        user = request.user
+        user.plan = res["data"]["plan"]["name"].lower()
+
+        # 30 day subscription
+        user.subscription_end = timezone.now() + timedelta(days=30)
+
+        user.save()
+
+        return render(request, "payment_success.html")
+
+    return render(request, "payment_failed.html")
+
+
+
+
+
+
+
+@csrf_exempt
+def paystack_webhook(request):
+
+    payload = json.loads(request.body)
+
+    event = payload["event"]
+
+    if event == "invoice.payment_success":
+
+        email = payload["data"]["customer"]["email"]
+
+        user = User.objects.get(email=email)
+
+        from datetime import timedelta
+        from django.utils import timezone
+
+        user.subscription_end = timezone.now() + timedelta(days=30)
+        user.save()
+
+    return HttpResponse(status=200)
+
+
+
+
+
+@login_required
+def start_trial(request):
+    user = request.user
+    if user.plan != 'free_trial' and not user.subscription_end:
+        # Start 7-day free trial
+        user.plan = 'free_trial'
+        user.trial_start = timezone.now()
+        user.subscription_end = timezone.now() + timedelta(days=7)
+        user.save()
+        messages.success(request, "Your 7-day free trial has started!")
+    else:
+        messages.info(request, "You already have an active trial or paid plan.")
     return redirect("dashboard")
 
 
 
-# --------------------------
-# Pricing Page
-# --------------------------
 
-def pricing_view(request):
-
-    if request.user.subscription_active:
-        return redirect("dashboard")
-
+def pricing(request):
+    # Define your plans here, or pass from settings
     plans = [
-        {"name": "Starter", "pay_url": "https://paystack.shop/pay/gzlmfb1q8x"},
-        {"name": "Professional", "pay_url": "https://paystack.shop/pay/b2hi35ebej"},
-        {"name": "Business", "pay_url": "https://paystack.shop/pay/058chi19tu"},
+        {"name": "Starter", "price": 5000, "pay_url": "#"},
+        {"name": "Professional", "price": 15000, "pay_url": "#"},
+        {"name": "Business", "price": 50000, "pay_url": "#"},
     ]
-
     return render(request, "pricing.html", {"plans": plans})
 
 
@@ -172,58 +250,55 @@ def pricing_view(request):
 
 
 
-def verify_payment(request):
-
-    reference = request.GET.get("reference")
-
-    if not reference:
-        messages.error(request, "Payment reference missing")
-        return redirect("pricing")
+@csrf_exempt
+@login_required
+def paystack_verify(request):
+    import json
+    data = json.loads(request.body)
+    reference = data.get("reference")
+    plan = data.get("plan")
 
     url = f"https://api.paystack.co/transaction/verify/{reference}"
+    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    resp = requests.get(url, headers=headers)
+    result = resp.json()
 
-    headers = {
-        "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"
-    }
-
-    response = requests.get(url, headers=headers)
-    data = response.json()
-
-    if data["status"] and data["data"]["status"] == "success":
-
-        amount = data["data"]["amount"] / 100
+    if result.get("status") == True and result["data"]["status"] == "success":
+        # Upgrade plan
         user = request.user
-
-        # Determine plan based on amount
-        if amount == 5000:
-            plan = "starter"
-        elif amount == 10000:
-            plan = "professional"
-        elif amount == 25000:
-            plan = "business"
-        else:
-            messages.error(request, "Invalid payment amount")
-            return redirect("pricing")
-
-        duration = 30
-        now = timezone.now()
-
-        if user.subscription_end and user.subscription_end > now:
-            new_end = user.subscription_end + timedelta(days=duration)
-        else:
-            new_end = now + timedelta(days=duration)
-
-        user.plan = plan
-        user.subscription_end = new_end
+        user.plan = plan.lower()
+        user.subscription_end = timezone.now() + timedelta(days=30)  # 1 month subscription
         user.save()
-
-        messages.success(request, "Payment verified! Subscription activated.")
-        return redirect("dashboard")
-
-    messages.error(request, "Payment verification failed")
-    return redirect("pricing")
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "failed"})
 
 
+
+
+
+@csrf_exempt
+@login_required
+def paystack_initialize(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        plan_name = data.get("plan")
+        email = request.user.email
+        amount = int(data.get("amount", 0))  # in kobo
+
+        headers = {
+            "Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "email": email,
+            "amount": amount,
+            "callback_url": request.build_absolute_uri(reverse("paystack_verify")),
+            "metadata": {"plan": plan_name}
+        }
+        r = requests.post("https://api.paystack.co/transaction/initialize", json=payload, headers=headers)
+        response = r.json()
+        return JsonResponse(response)
+    return JsonResponse({"status": "error", "message": "Invalid request"})
 
 # --------------------------
 # Home / Dashboard
@@ -233,11 +308,14 @@ def home(request):
 
 
 
-
+def My_pricing(request):
+    return render(request, 'my_price.html')
 
 
 
 # -------------------------
+
+
 
 
 @login_required
@@ -245,16 +323,35 @@ def dashboard(request):
     user = request.user
     business = getattr(user, 'business', None)
 
-    now_time = timezone.now()
-    current_month = now_time.month
-    current_year = now_time.year
+    now = timezone.now()
+    current_month = now.month
+    current_year = now.year
 
-    # Summary counts
-    total_products = Product.objects.filter(business=business).count()
-    total_customers = Customer.objects.filter(business=business).count()
-    total_orders = Order.objects.filter(business=business).count()
+    # ----------------------
+    # Monthly Counts
+    # ----------------------
+    total_products = Product.objects.filter(
+        business=business,
+        created_at__year=current_year,
+        created_at__month=current_month
+    ).count()
 
-    # Orders this month
+    total_customers = Customer.objects.filter(
+        business=business,
+        created_at__year=current_year,
+        created_at__month=current_month
+    ).count()
+
+    total_orders = Order.objects.filter(
+        business=business,
+        status='paid',
+        created_at__year=current_year,
+        created_at__month=current_month
+    ).count()
+
+    # ----------------------
+    # Monthly Sales & Profit
+    # ----------------------
     orders_this_month = Order.objects.filter(
         business=business,
         status='paid',
@@ -263,31 +360,44 @@ def dashboard(request):
     )
 
     total_sales = orders_this_month.aggregate(total=Sum('total'))['total'] or 0
+
     order_items = OrderItem.objects.filter(order__in=orders_this_month)
     total_profit = sum(
-        (item.total_price - (item.product.cost_price * item.quantity))
+        (item.total_price - item.product.cost_price * item.quantity)
         for item in order_items
     )
 
-    # Product-wise sales/profit
+    # Product-wise sales & profit
     product_data = defaultdict(lambda: {'sales': 0, 'profit': 0})
     for item in order_items:
         product_data[item.product.name]['sales'] += item.total_price
-        product_data[item.product.name]['profit'] += item.total_price - (item.product.cost_price * item.quantity)
+        product_data[item.product.name]['profit'] += (
+            item.total_price - item.product.cost_price * item.quantity
+        )
 
     product_labels = list(product_data.keys())
-    product_sales_values = [data['sales'] for data in product_data.values()]
-    product_profit_values = [data['profit'] for data in product_data.values()]
+    product_sales_values = [v['sales'] for v in product_data.values()]
+    product_profit_values = [v['profit'] for v in product_data.values()]
 
-    # Subscription status
-    subscription_active = user.subscription_end and user.subscription_end > now_time
-    subscription_end = user.subscription_end
+    # Weekly Sales (splitting by week of month)
+    weekly_sales = [0, 0, 0, 0]  # week 1 - 4
+    for order in orders_this_month:
+        day = order.created_at.day
+        week_index = min((day-1)//7, 3)
+        weekly_sales[week_index] += order.total
 
-    # Available plans
+    # Subscription
+    subscription_active = user.subscription_end and user.subscription_end > now
+    trial_active = user.plan == 'free_trial' and user.subscription_end and user.subscription_end > now
+    trial_days_remaining = 0
+    if trial_active:
+        trial_days_remaining = (user.subscription_end - now).days
+
+    # Plans for upgrade buttons
     plans = [
-        {"name": "Starter", "pay_url": "https://paystack.shop/pay/gzu54tykc6"},
-        {"name": "Professional", "pay_url": "https://paystack.shop/pay/b2hi35ebej"},
-        {"name": "Business", "pay_url": "https://paystack.shop/pay/058chi19tu"},
+        {"name": "Starter", "price": 5000},
+        {"name": "Professional", "price": 10000},
+        {"name": "Business", "price": 25000},
     ]
 
     context = {
@@ -299,20 +409,23 @@ def dashboard(request):
         "product_labels": product_labels,
         "product_sales_values": product_sales_values,
         "product_profit_values": product_profit_values,
-        "profile": user,               # user acts as profile in template
+        "weekly_sales": weekly_sales,
+        "profile": user,
         "subscription_active": subscription_active,
-        "subscription_end": subscription_end,
+        "trial_active": trial_active,
+        "trial_days_remaining": trial_days_remaining,
+        "subscription_end": user.subscription_end,
         "plans": plans,
-        "now": now_time,
+        "now": now,
     }
 
     return render(request, "dashboard.html", context)
-
-
-
 # ==============================
 # PRODUCTS
 # ==============================
+
+
+
 
 
 @login_required
@@ -322,19 +435,47 @@ def product_list(request):
 
 
 
+
 @login_required
 def product_create(request):
-    if request.method == "POST":
-        Product.objects.create(
-            business=request.user.business,
-            name=request.POST["name"],
-            sku=request.POST["sku"],
-            cost_price=request.POST["cost_price"],
-            selling_price=request.POST["selling_price"]
-        )
-        return redirect("product_list")
-    return render(request, "product_create.html")
+    user = request.user
+    business = user.business
 
+    # Count current products
+    current_count = Product.objects.filter(business=business).count()
+    limit = user.product_limit
+
+    # Check plan limit
+    if limit is not None and current_count >= limit:
+        messages.error(
+            request,
+            f"You have reached your plan limit of {limit} products. Upgrade to add more."
+        )
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        name = request.POST.get("name")
+        sku = request.POST.get("sku")
+        cost_price = request.POST.get("cost_price")
+        selling_price = request.POST.get("selling_price")
+
+        # Validate input
+        if not name or not sku or not cost_price or not selling_price :
+            messages.error(request, "All fields are required")
+            return redirect("product_create")
+
+        # Create product
+        Product.objects.create(
+            business=business,
+            name=name,
+            sku=sku,
+            cost_price=cost_price,
+            selling_price=selling_price
+        )
+        messages.success(request, "Product added successfully!")
+        return redirect("product_list")
+
+    return render(request, "product_create.html")
 
 
 

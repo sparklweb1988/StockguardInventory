@@ -1,155 +1,129 @@
 {% extends "base.html" %}
 {% block content %}
-
 <div class="container py-4">
-
-    <!-- Welcome Section -->
-    <h2 class="mb-2">Welcome: {{ user.business.name }}</h2>
+    <h2>Welcome: {{ user.business.name }}</h2>
 
     <!-- Summary Cards -->
     <div class="row text-center">
-
-        <!-- Total Products -->
         <div class="col-md-4 mb-3">
             <div class="card shadow text-white bg-primary">
                 <div class="card-body">
-                    <h5>Total Products</h5>
+                    <h5>Total Products (This Month)</h5>
                     <h2>{{ total_products }}</h2>
-                    <p class="small">Products in inventory</p>
+                    <p class="small">Products added this month</p>
                 </div>
             </div>
         </div>
 
-        <!-- Total Customers -->
         <div class="col-md-4 mb-3">
             <div class="card shadow text-white bg-success">
                 <div class="card-body">
-                    <h5>Total Customers</h5>
+                    <h5>Total Customers (This Month)</h5>
                     <h2>{{ total_customers }}</h2>
-                    <p class="small">Customers in database</p>
+                    <p class="small">Customers added this month</p>
                 </div>
             </div>
         </div>
 
-        <!-- Total Orders -->
         <div class="col-md-4 mb-3">
             <div class="card shadow text-white bg-warning">
                 <div class="card-body">
-                    <h5>Total Orders</h5>
+                    <h5>Total Orders (This Month)</h5>
                     <h2>{{ total_orders }}</h2>
-                    <p class="small">Orders placed</p>
+                    <p class="small">Orders placed this month</p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Total Sales -->
-        <div class="col-md-4 mb-3">
+    <!-- Sales & Profit -->
+    <div class="row text-center mt-4">
+        <div class="col-md-6 mb-3">
             <div class="card shadow text-white bg-dark">
                 <div class="card-body">
-                    <h5>Total Sales</h5>
+                    <h5>Total Sales (This Month)</h5>
                     <h2>₦{{ total_sales|floatformat:2 }}</h2>
-                    <p class="small">Revenue this month</p>
                 </div>
             </div>
         </div>
-
-        <!-- Total Profit -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-6 mb-3">
             <div class="card shadow text-white bg-danger">
                 <div class="card-body">
-                    <h5>Total Profit</h5>
+                    <h5>Total Profit (This Month)</h5>
                     <h2>₦{{ total_profit|floatformat:2 }}</h2>
-                    <p class="small">Net business profit</p>
                 </div>
             </div>
         </div>
-
-        <!-- Subscription Card -->
-        <div class="col-md-4 mb-3">
-            <div class="card shadow">
-                <div class="card-body">
-                    <p><strong>Current Plan:</strong> {{ profile.plan|title }}</p>
-
-                    <p><strong>Plan Status:</strong>
-                        {% if subscription_active %}
-                            <span class="text-success">Active</span>
-                        {% else %}
-                            <span class="text-danger">Not Active</span>
-                        {% endif %}
-                    </p>
-
-                    <p><strong>Valid Until:</strong>
-                        {% if subscription_active %}
-                            {{ subscription_end|date:"D, d M Y" }}
-                        {% else %}
-                            Not Active
-                        {% endif %}
-                    </p>
-                    
-                </div>
-            </div>
-        </div>
-
     </div>
+
+    <!-- Subscription Card -->
+    <div class="card shadow mt-4">
+        <div class="card-body">
+            <p><strong>Current Plan:</strong> {{ profile.plan|title }}</p>
+
+            {% if trial_active %}
+                <p><strong>Free Trial:</strong> {{ trial_days_remaining }} days remaining</p>
+            {% endif %}
+
+            <p><strong>Plan Status:</strong>
+                {% if subscription_active %}
+                    <span class="text-success">Active</span>
+                {% else %}
+                    <span class="text-danger">Not Active</span>
+                {% endif %}
+            </p>
+
+            <p><strong>Valid Until:</strong>
+                {% if subscription_active %}
+                    {{ subscription_end|date:"D, d M Y" }}
+                {% else %}
+                    Not Active
+                {% endif %}
+            </p>
+
+            {% if not subscription_active and not trial_active %}
+            <hr>
+            <h6>Upgrade Plan</h6>
+            {% for plan in plans %}
+            <button class="btn btn-sm btn-primary mb-2 paystack-btn"
+                data-plan="{{ plan.name }}"
+                data-email="{{ profile.email }}"
+                data-amount="{{ plan.price }}00">
+                Pay & Upgrade to {{ plan.name }} (₦{{ plan.price|floatformat:2 }})
+            </button>
+            <br>
+            {% endfor %}
+            {% else %}
+            <small class="text-muted">Your subscription or trial is active.</small>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Upgrade Plan Banner -->
+    <div class="alert alert-info text-center mb-4">
+        {% if not subscription_active and not trial_active %}
+        <strong>Your plan has expired or trial ended.</strong>
+        <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary ml-2">
+            Upgrade Plan
+        </a>
+        {% elif subscription_active %}
+        <strong>Your current plan: {{ profile.plan|title }}</strong>
+        <a href="{% url 'pricing' %}" class="btn btn-sm btn-secondary ml-2">
+            Change/Upgrade Plan
+        </a>
+    {% endif %}
+</div>
 
     <hr class="my-5">
 
-    <!-- Business Overview Chart -->
-    <div class="card shadow-sm mb-5">
-        <div class="card-header">
-            <h5 class="mb-0">Business Overview</h5>
-        </div>
-        <div class="card-body" style="height:300px;">
-            <canvas id="dashboardChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Product Sales & Profit Chart -->
-    <div class="card shadow-sm mb-5">
-        <div class="card-header">
-            <h5 class="mb-0">Product Sales & Profit (Current Month)</h5>
-        </div>
-        <div class="card-body" style="height:300px;">
-            <canvas id="productChart"></canvas>
-        </div>
-    </div>
+    
 
 </div>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-const ctx = document.getElementById('dashboardChart');
-
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ['Products', 'Customers', 'Orders', 'Total Sales', 'Profit'],
-        datasets: [{
-            label: 'Business Data (Current Month)',
-            data: [
-                {{ total_products }},
-                {{ total_customers }},
-                {{ total_orders }},
-                {{ total_sales|floatformat:2 }},
-                {{ total_profit|floatformat:2 }}
-            ],
-            backgroundColor: ['#0d6efd','#198754','#ffc107','#0dcaf0','#dc3545'],
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {legend:{display:false}},
-        scales: {y:{beginAtZero:true}}
-    }
-});
-
-
 const productCtx = document.getElementById('productChart');
-
 new Chart(productCtx,{
     type:'bar',
     data:{
@@ -169,11 +143,61 @@ new Chart(productCtx,{
     },
     options:{
         responsive:true,
-        maintainAspectRatio:false,
         plugins:{legend:{position:'top'}},
         scales:{y:{beginAtZero:true}}
     }
 });
-</script>
 
+const weeklyCtx = document.getElementById('weeklySalesChart');
+new Chart(weeklyCtx,{
+    type:'line',
+    data:{
+        labels: ['Week 1','Week 2','Week 3','Week 4'],
+        datasets:[{
+            label:'Weekly Sales',
+            data: {{ weekly_sales|safe }},
+            fill:false,
+            borderColor:'#0d6efd',
+            tension:0.1
+        }]
+    },
+    options:{
+        responsive:true,
+        plugins:{legend:{position:'top'}},
+        scales:{y:{beginAtZero:true}}
+    }
+});
+
+const salesDoughnutCtx = document.getElementById('salesDoughnutChart');
+new Chart(salesDoughnutCtx,{
+    type:'doughnut',
+    data:{
+        labels: {{ product_labels|safe }},
+        datasets:[{
+            label:'Sales Distribution',
+            data: {{ product_sales_values|safe }},
+            backgroundColor:[
+                '#0d6efd','#198754','#ffc107','#dc3545','#6f42c1','#fd7e14'
+            ]
+        }]
+    },
+    options:{responsive:true, plugins:{legend:{position:'right'}}}
+});
+
+const profitDoughnutCtx = document.getElementById('profitDoughnutChart');
+new Chart(profitDoughnutCtx,{
+    type:'doughnut',
+    data:{
+        labels: {{ product_labels|safe }},
+        datasets:[{
+            label:'Profit Distribution',
+            data: {{ product_profit_values|safe }},
+            backgroundColor:[
+                '#198754','#0d6efd','#ffc107','#dc3545','#6f42c1','#fd7e14'
+            ]
+        }]
+    },
+    options:{responsive:true, plugins:{legend:{position:'right'}}}
+});
+</script>
 {% endblock %}

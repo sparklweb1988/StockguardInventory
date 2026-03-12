@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 
 # ==========================
 # BUSINESS
@@ -22,6 +23,8 @@ class Business(models.Model):
 
 
 
+
+
 class User(AbstractUser):
     business = models.ForeignKey(
         'Business',
@@ -31,29 +34,38 @@ class User(AbstractUser):
     )
 
     PLAN_CHOICES = (
+        ('free_trial', 'Free Trial'),
         ('starter', 'Starter'),
         ('professional', 'Professional'),
         ('business', 'Business'),
     )
 
-    plan = models.CharField(
-        max_length=20,
-        choices=PLAN_CHOICES,
-        default='starter'
-    )
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free_trial')
 
-    subscription_end = models.DateTimeField(
-        null=True,
-        blank=True
-    )
+    subscription_end = models.DateTimeField(null=True, blank=True)
+    trial_start = models.DateTimeField(null=True, blank=True)
 
     @property
-    def subscription_active(self):
-        if self.subscription_end:
-            return self.subscription_end > timezone.now()
-        return False
+    def is_subscription_active(self):
+        return self.subscription_end and self.subscription_end > timezone.now()
+
+    @property
+    def product_limit(self):
+        """Return max products allowed based on plan."""
+        PLAN_PRODUCT_LIMITS = getattr(settings, "PLAN_PRODUCT_LIMITS", {})
+        return PLAN_PRODUCT_LIMITS.get(self.plan)
     
-    
+    def start_trial(self):
+        """Start a free trial for the user."""
+        self.plan = 'free_trial'
+        self.trial_start = timezone.now()
+        # e.g., 7 days free trial
+        self.subscription_end = timezone.now() + timedelta(days=7)
+        self.save()
+        
+        
+        
+
 
 
 class Payment(models.Model):
@@ -72,7 +84,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=100)
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
-
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     def __str__(self):
         return self.name
 
@@ -108,7 +120,7 @@ class Batch(models.Model):
     batch_number = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     expiry_date = models.DateField()
-
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     class Meta:
         ordering = ['expiry_date']
 
@@ -125,7 +137,7 @@ class Customer(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True, null=True)
-
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     def __str__(self):
         return self.name
 
@@ -175,7 +187,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=12, decimal_places=2)
-
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     def save(self, *args, **kwargs):
         self.total_price = self.quantity * self.price
         super().save(*args, **kwargs)
@@ -194,7 +206,7 @@ class Invoice(models.Model):
     issued_at = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(default=timezone.now)
     paid = models.BooleanField(default=False)
-
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     @property
     def invoice_number(self):
         return f"INV-{self.order.order_number}"
