@@ -2,32 +2,17 @@
 {% block content %}
 
 <div class="container py-5 text-center">
-
     <div class="card shadow mx-auto" style="max-width:500px;">
         <div class="card-body">
-
             <h2 class="text-success mb-3">Payment Successful</h2>
+            <p class="mb-3">Your subscription has been activated successfully.</p>
 
-            <p class="mb-3">
-                Your subscription has been activated successfully.
-            </p>
+            <p><strong>Plan:</strong> {{ plan }}</p>
+            <p><strong>Valid Until:</strong> {{ subscription_end|date:"D, d M Y" }}</p>
 
-            <p>
-                <strong>Plan:</strong> {{ user.plan|title }}
-            </p>
-
-            <p>
-                <strong>Valid Until:</strong>
-                {{ user.subscription_end|date:"D, d M Y" }}
-            </p>
-
-            <a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">
-                Go to Dashboard
-            </a>
-
+            <a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">Go to Dashboard</a>
         </div>
     </div>
-
 </div>
 
 {% endblock %}

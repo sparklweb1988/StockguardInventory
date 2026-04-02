@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container py-4">
-    <h2>Welcome: {{ user.business.name }}</h2>
+<div class="container-fluid py-4">
+
+    <h2 class="mb-4">Welcome: {{ user.business.name }}</h2>
 
     <!-- Summary Cards -->
-    <div class="row text-center">
-        <div class="col-md-4 mb-3">
-            <div class="card shadow text-white bg-primary">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-4 text-center">
+        <div class="col">
+            <div class="card shadow text-white bg-primary h-100">
                 <div class="card-body">
                     <h5>Total Products (This Month)</h5>
                     <h2>{{ total_products }}</h2>
@@ -15,8 +16,8 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow text-white bg-success">
+        <div class="col">
+            <div class="card shadow text-white bg-success h-100">
                 <div class="card-body">
                     <h5>Total Customers (This Month)</h5>
                     <h2>{{ total_customers }}</h2>
@@ -25,8 +26,8 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow text-white bg-warning">
+        <div class="col">
+            <div class="card shadow text-white bg-warning h-100">
                 <div class="card-body">
                     <h5>Total Orders (This Month)</h5>
                     <h2>{{ total_orders }}</h2>
@@ -34,20 +35,30 @@
                 </div>
             </div>
         </div>
+
+        <div class="col">
+            <div class="card shadow text-white bg-danger h-100">
+                <div class="card-body">
+                    <h5>Total Expired Products</h5>
+                    <h2>{{ total_expired_products }}</h2>
+                    <p class="small">Products with expired batches</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Sales & Profit -->
-    <div class="row text-center mt-4">
-        <div class="col-md-6 mb-3">
-            <div class="card shadow text-white bg-dark">
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4 text-center">
+        <div class="col">
+            <div class="card shadow text-white bg-dark h-100">
                 <div class="card-body">
                     <h5>Total Sales (This Month)</h5>
                     <h2>₦{{ total_sales|floatformat:2 }}</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card shadow text-white bg-danger">
+        <div class="col">
+            <div class="card shadow text-white bg-danger h-100">
                 <div class="card-body">
                     <h5>Total Profit (This Month)</h5>
                     <h2>₦{{ total_profit|floatformat:2 }}</h2>
@@ -56,15 +67,52 @@
         </div>
     </div>
 
+    <!-- Charts Section -->
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+        <div class="col">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Product Sales & Profit</h5>
+                    <canvas id="productChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Weekly Sales</h5>
+                    <canvas id="weeklySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+        <div class="col">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Sales Distribution</h5>
+                    <canvas id="salesDoughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Profit Distribution</h5>
+                    <canvas id="profitDoughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Subscription Card -->
-    <div class="card shadow mt-4">
+    <div class="card shadow mb-4">
         <div class="card-body">
             <p><strong>Current Plan:</strong> {{ profile.plan|title }}</p>
-
             {% if trial_active %}
                 <p><strong>Free Trial:</strong> {{ trial_days_remaining }} days remaining</p>
             {% endif %}
-
             <p><strong>Plan Status:</strong>
                 {% if subscription_active %}
                     <span class="text-success">Active</span>
@@ -72,7 +120,6 @@
                     <span class="text-danger">Not Active</span>
                 {% endif %}
             </p>
-
             <p><strong>Valid Until:</strong>
                 {% if subscription_active %}
                     {{ subscription_end|date:"D, d M Y" }}
@@ -82,41 +129,22 @@
             </p>
 
             {% if not subscription_active and not trial_active %}
-            <hr>
-            <h6>Upgrade Plan</h6>
-            {% for plan in plans %}
-            <button class="btn btn-sm btn-primary mb-2 paystack-btn"
-                data-plan="{{ plan.name }}"
-                data-email="{{ profile.email }}"
-                data-amount="{{ plan.price }}00">
-                Pay & Upgrade to {{ plan.name }} (₦{{ plan.price|floatformat:2 }})
-            </button>
-            <br>
-            {% endfor %}
+                <hr>
+                <h6>Upgrade Plan</h6>
+                {% for plan in plans %}
+                    <button class="btn btn-sm btn-primary mb-2 paystack-btn"
+                        data-plan="{{ plan.name }}"
+                        data-email="{{ profile.user.email }}"
+                        data-amount="{{ plan.price }}00">
+                        Pay & Upgrade to {{ plan.name }} (₦{{ plan.price|floatformat:2 }})
+                    </button>
+                    <br>
+                {% endfor %}
             {% else %}
-            <small class="text-muted">Your subscription or trial is active.</small>
+                <small class="text-muted">Your subscription or trial is active.</small>
             {% endif %}
         </div>
     </div>
-
-    <!-- Upgrade Plan Banner -->
-    <div class="alert alert-info text-center mb-4">
-        {% if not subscription_active and not trial_active %}
-        <strong>Your plan has expired or trial ended.</strong>
-        <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary ml-2">
-            Upgrade Plan
-        </a>
-        {% elif subscription_active %}
-        <strong>Your current plan: {{ profile.plan|title }}</strong>
-        <a href="{% url 'pricing' %}" class="btn btn-sm btn-secondary ml-2">
-            Change/Upgrade Plan
-        </a>
-    {% endif %}
-</div>
-
-    <hr class="my-5">
-
-    
 
 </div>
 
@@ -124,48 +152,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const productCtx = document.getElementById('productChart');
-new Chart(productCtx,{
+new Chart(productCtx, {
     type:'bar',
     data:{
         labels: {{ product_labels|safe }},
         datasets:[
-            {
-                label:'Sales',
-                data: {{ product_sales_values|safe }},
-                backgroundColor:'#0d6efd'
-            },
-            {
-                label:'Profit',
-                data: {{ product_profit_values|safe }},
-                backgroundColor:'#198754'
-            }
+            {label:'Sales', data: {{ product_sales_values|safe }}, backgroundColor:'#0d6efd'},
+            {label:'Profit', data: {{ product_profit_values|safe }}, backgroundColor:'#198754'}
         ]
     },
-    options:{
-        responsive:true,
-        plugins:{legend:{position:'top'}},
-        scales:{y:{beginAtZero:true}}
-    }
+    options:{responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true}}}
 });
 
 const weeklyCtx = document.getElementById('weeklySalesChart');
 new Chart(weeklyCtx,{
     type:'line',
     data:{
-        labels: ['Week 1','Week 2','Week 3','Week 4'],
-        datasets:[{
-            label:'Weekly Sales',
-            data: {{ weekly_sales|safe }},
-            fill:false,
-            borderColor:'#0d6efd',
-            tension:0.1
-        }]
+        labels:['Week 1','Week 2','Week 3','Week 4'],
+        datasets:[{label:'Weekly Sales', data: {{ weekly_sales|safe }}, fill:false, borderColor:'#0d6efd', tension:0.1}]
     },
-    options:{
-        responsive:true,
-        plugins:{legend:{position:'top'}},
-        scales:{y:{beginAtZero:true}}
-    }
+    options:{responsive:true, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true}}}
 });
 
 const salesDoughnutCtx = document.getElementById('salesDoughnutChart');
@@ -173,13 +179,8 @@ new Chart(salesDoughnutCtx,{
     type:'doughnut',
     data:{
         labels: {{ product_labels|safe }},
-        datasets:[{
-            label:'Sales Distribution',
-            data: {{ product_sales_values|safe }},
-            backgroundColor:[
-                '#0d6efd','#198754','#ffc107','#dc3545','#6f42c1','#fd7e14'
-            ]
-        }]
+        datasets:[{label:'Sales Distribution', data: {{ product_sales_values|safe }},
+            backgroundColor:['#0d6efd','#198754','#ffc107','#dc3545','#6f42c1','#fd7e14']}]
     },
     options:{responsive:true, plugins:{legend:{position:'right'}}}
 });
@@ -189,13 +190,8 @@ new Chart(profitDoughnutCtx,{
     type:'doughnut',
     data:{
         labels: {{ product_labels|safe }},
-        datasets:[{
-            label:'Profit Distribution',
-            data: {{ product_profit_values|safe }},
-            backgroundColor:[
-                '#198754','#0d6efd','#ffc107','#dc3545','#6f42c1','#fd7e14'
-            ]
-        }]
+        datasets:[{label:'Profit Distribution', data: {{ product_profit_values|safe }},
+            backgroundColor:['#198754','#0d6efd','#ffc107','#dc3545','#6f42c1','#fd7e14']}]
     },
     options:{responsive:true, plugins:{legend:{position:'right'}}}
 });

@@ -1,5 +1,9 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 urlpatterns = [
 
@@ -10,7 +14,7 @@ urlpatterns = [
     path("products/update/<int:id>/", views.product_update, name="product_update"),
     path("products/delete/<int:id>/", views.product_delete, name="product_delete"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    path("My_pricing/", views.My_pricing, name="my_pricing"),
+    #path("My_pricing/", views.My_pricing, name="my_pricing"),
   
   
     # Batch Management
@@ -44,12 +48,17 @@ urlpatterns = [
     # invoice
     
     path("invoice/<int:order_id>/", views.invoice_view, name="invoice_view"),
-    path("pricing/", views.pricing, name="pricing"),
+
     
-    path("pay/<str:plan>/", views.initialize_payment, name="pay"),
-    path("start-trial/", views.start_trial, name="start_trial"),
-    path("payment/verify/", views.verify_payment, name="verify_payment"),
-    path("paystack/webhook/", views.paystack_webhook, name="paystack_webhook"),
-    path('paystack/verify/', views.paystack_verify, name='paystack_verify'),
-    path('paystack/initialize/', views.paystack_initialize, name='paystack_initialize'),
+    
+    
+    # Paystack
+    path('pricing/', views.pricing, name='pricing'),
+    path('paystack-verify/', views.paystack_verify, name='paystack_verify'),
+    path('payment-success/', views.payment_success, name='payment_success'),
+    
+ 
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

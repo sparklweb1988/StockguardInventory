@@ -1,8 +1,7 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
-from django.conf import settings
+from django.contrib.auth.models import User
+
 
 # ==========================
 # BUSINESS
@@ -17,64 +16,8 @@ class Business(models.Model):
         return self.name
 
 
-# ==========================
-# CUSTOM USER
-# ==========================
 
 
-
-
-
-class User(AbstractUser):
-    business = models.ForeignKey(
-        'Business',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-
-    PLAN_CHOICES = (
-        ('free_trial', 'Free Trial'),
-        ('starter', 'Starter'),
-        ('professional', 'Professional'),
-        ('business', 'Business'),
-    )
-
-    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free_trial')
-
-    subscription_end = models.DateTimeField(null=True, blank=True)
-    trial_start = models.DateTimeField(null=True, blank=True)
-
-    @property
-    def is_subscription_active(self):
-        return self.subscription_end and self.subscription_end > timezone.now()
-
-    @property
-    def product_limit(self):
-        """Return max products allowed based on plan."""
-        PLAN_PRODUCT_LIMITS = getattr(settings, "PLAN_PRODUCT_LIMITS", {})
-        return PLAN_PRODUCT_LIMITS.get(self.plan)
-    
-    def start_trial(self):
-        """Start a free trial for the user."""
-        self.plan = 'free_trial'
-        self.trial_start = timezone.now()
-        # e.g., 7 days free trial
-        self.subscription_end = timezone.now() + timedelta(days=7)
-        self.save()
-        
-        
-        
-
-
-
-class Payment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reference = models.CharField(max_length=200)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    plan = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
 # ==========================
 # PRODUCT
 # ==========================
@@ -221,3 +164,47 @@ class Invoice(models.Model):
     
     
  
+ 
+ 
+ 
+ 
+# models.py (Profile)
+
+
+
+
+class Profile(models.Model):
+    PLAN_CHOICES = (
+        ('free', 'Free'),
+        ('starter', 'Starter'),
+        ('professional', 'Professional'),
+        ('business', 'Business'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    plan_expiry = models.DateTimeField(null=True, blank=True)
+    paystack_ref = models.CharField(max_length=200, blank=True, null=True)
+
+    def is_active(self):
+        """Return True if plan is active (paid plan and not expired)"""
+        return self.plan != 'free' and self.plan_expiry and self.plan_expiry > timezone.now()
+
+    def is_trial_active(self):
+        """Return True if free trial is active"""
+        return self.plan == 'free' and (self.plan_expiry is None or self.plan_expiry > timezone.now())
+
+    def product_limit(self):
+        """Return product limit based on plan"""
+        if self.plan == 'free':
+            return 7
+        elif self.plan == 'starter':
+            return 20
+        elif self.plan == 'professional':
+            return 200
+        elif self.plan == 'business':
+            return None  # unlimited
+        return 0
+
+    def __str__(self):
+        return self.user.username
