@@ -49,7 +49,9 @@ urlpatterns = [
     
     path("invoice/<int:order_id>/", views.invoice_view, name="invoice_view"),
 
-    
+    #   blog
+    path('blog/', views.blog_view, name='blog_view'),
+    path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     
     
     # Paystack

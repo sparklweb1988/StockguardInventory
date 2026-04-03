@@ -4,7 +4,6 @@
 {% block content %}
 
 <style>
-/* Screenshot images */
 .screenshot-img {
     border: 3px solid #dee2e6;
     border-radius: 10px;
@@ -14,391 +13,369 @@
 .screenshot-img:hover {
     transform: scale(1.02);
 }
-
-/* Hero section */
 .hero-section {
     min-height: 100vh;
     display: flex;
     align-items: center;
 }
-
-/* Section margin top */
 .section-gap {
     margin-top: 80px;
 }
 </style>
 
-<!-- Hero Section -->
+<!-- HERO -->
 <section class="hero-section bg-light">
-    <div class="container h-100">
-        <div class="row h-100 align-items-center">
-            <!-- Image Left -->
-            <div class="col-md-6 text-center mb-4 mb-md-0">
+    <div class="container">
+        <div class="row align-items-center">
 
-                <img src="{% static 'images/das.png' %}" class="img-fluid screenshot-img" alt="Dashboard Screenshot">
+            <div class="col-md-6 text-center mb-4">
+                <img src="{% static 'images/das.png' %}" class="img-fluid screenshot-img">
             </div>
-        
-            <!-- Text Right -->
+
             <div class="col-md-6">
-                <h1 class="fw-bold display-4">StockGuard Inventory Management for Modern Businesses</h1>
+                <h1 class="fw-bold display-4">
+                    Stop Losing Money to Expired & Missing Stock
+                </h1>
 
                 <p class="lead text-muted mt-3">
-                    Seamlessly track stock, manage expiry dates, and generate invoices — all in one intuitive and powerful platform.
+                    StockGuard helps you track inventory in real-time, prevent stockouts, and avoid expired products — all from one powerful dashboard.
                 </p>
-                <p class="text-muted mb-4">
-                    Whether you're a small business or a growing enterprise, our system is built to scale with your needs.
+
+                <p class="text-muted">
+                    Built for modern businesses that want clarity, control, and growth.
                 </p>
+
                 {% if not user.is_authenticated %}
-                    <a href="/signup/" class="btn btn-primary btn-lg">Get Started</a>
+                    <a href="/signup/" class="btn btn-primary btn-lg me-2">Start Free Trial</a>
                 {% else %}
                     <a href="/dashboard/" class="btn btn-success btn-lg">Go to Dashboard</a>
                 {% endif %}
             </div>
+
         </div>
     </div>
-
-
 </section>
 
-
-
-<!-- App Screenshots -->
+<!-- VIDEO -->
 <section class="container section-gap">
-    <h2 class="text-center mb-5">See the Platform in Action</h2>
+    <h2 class="text-center mb-4">See StockGuard in Action</h2>
 
-    <!-- Dashboard -->
-    <div class="d-flex flex-column flex-md-row align-items-center mb-5">
-        <div class="flex-fill p-3">
-            <img src="{% static 'images/das.png' %}" class="img-fluid screenshot-img" alt="Dashboard">
-        </div>
-        <div class="flex-fill p-3">
-            <h3>Powerful Business Dashboard</h3>
-            <p class="text-muted">
-                Get a real-time overview of your entire business in one place.
-                Monitor stock levels, recent orders, low stock alerts, and expiring products instantly.
-            </p>
-            <p class="text-muted">
-                The dashboard helps you make smarter decisions by showing key inventory insights and important notifications.
-            </p>
-        </div>
-    </div>
+    <div class="row align-items-center">
 
-    <!-- Product Table -->
-    <div class="d-flex flex-column flex-md-row-reverse align-items-center mb-5">
-        <div class="flex-fill p-3">
-            <img src="{% static 'images/Product.png' %}" class="img-fluid screenshot-img" alt="Product Table">
+        <div class="col-md-6 mb-4">
+            {% if video %}
+                <video controls class="w-100 rounded shadow">
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+                </video>
+            {% else %}
+                <div class="alert alert-info">Upload a demo video to showcase your product.</div>
+            {% endif %}
         </div>
-        <div class="flex-fill p-3">
-            <h3>Smart Product Management</h3>
-            <p class="text-muted">
-                Easily manage your products with an organized table view.
-                Track quantities, batch numbers, and expiration dates while maintaining accurate inventory levels.
-            </p>
-            <p class="text-muted">
-                Our system also provides <strong>Low Stock Alerts</strong>, notifying you when product quantities fall below your defined threshold.
-            </p>
-            <ul class="text-muted">
-                <li>Real-time stock tracking</li>
-                <li>Automatic low stock alerts</li>
-                <li>Batch and expiry date tracking</li>
-                <li>Easy product table management</li>
-            </ul>
-        </div>
-    </div>
 
-    <!-- Orders -->
-    <div class="d-flex flex-column flex-md-row align-items-center mb-5">
-        <div class="flex-fill p-3">
-            <img src="{% static 'images/Orders.png' %}" class="img-fluid screenshot-img" alt="Orders Table">
+        <div class="col-md-6">
+            {% if user.is_staff %}
+            <div class="card p-4 shadow">
+                <h5>Upload Demo Video</h5>
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" name="video" class="form-control mb-3">
+                    <button class="btn btn-primary w-100">Upload</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
-        <div class="flex-fill p-3">
-            <h3>Order Tracking Made Simple</h3>
-            <p class="text-muted">
-                Keep track of every order placed by your customers in a clean and organized order table.
-            </p>
-            <p class="text-muted">
-                View order status, quantities, and product details quickly while maintaining a smooth workflow.
-            </p>
-        </div>
-    </div>
 
-    <!-- Invoice Generator -->
-    <div class="d-flex flex-column flex-md-row-reverse align-items-center">
-        <div class="flex-fill p-3">
-            <img src="{% static 'images/Invoice.png' %}" class="img-fluid screenshot-img" alt="Invoice Generator">
-        </div>
-        <div class="flex-fill p-3">
-            <h3>Instant Invoice Generation</h3>
-            <p class="text-muted">
-                Generate professional invoices instantly for your customers.
-            </p>
-            <p class="text-muted">
-                The system automatically calculates totals, taxes, and discounts while creating clean and professional invoices ready to send.
-            </p>
-        </div>
     </div>
 </section>
 
-<!-- Key Features -->
+<!-- FEATURES -->
 <section class="container section-gap">
-    <h2 class="text-center mb-4">Key Features</h2>
-    <div class="row text-center">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title">Expiry Tracking</h4>
-                    <p class="card-text text-muted">Never lose money from expired stock again. Our platform tracks expiration dates and alerts you before products expire.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title">Invoice Generation</h4>
-                    <p class="card-text text-muted">Create professional invoices instantly with automatic totals, taxes, and discounts.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title">Multi-Business SaaS</h4>
-                    <p class="card-text text-muted">Manage multiple businesses from a single account while keeping data secure and isolated.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<h2 class="text-center mb-5">Everything You Need to Manage Inventory</h2>
+
+<div class="row text-center">
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<h5>Smart Stock Alerts</h5>
+<p class="text-muted">
+Never run out of products again. Get notified instantly when stock is low or finished.
+</p>
+</div>
+</div>
+</div>
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<h5>Expiry Tracking System</h5>
+<p class="text-muted">
+Avoid losses from expired goods with automatic alerts at 3 months, 1 month, and 7 days.
+</p>
+</div>
+</div>
+</div>
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<h5>Invoices & Orders</h5>
+<p class="text-muted">
+Create professional invoices and track every order while your stock updates automatically.
+</p>
+</div>
+</div>
+</div>
+
+</div>
 </section>
 
-<!-- Benefits -->
-<section class="bg-primary text-white py-5 section-gap">
-    <div class="container">
-        <h2 class="text-center mb-4">Why Choose StockGuard Inventory?</h2>
-        <div class="mx-auto" style="max-width: 800px;">
-            <div class="row text-center">
-                <div class="col-md-6 mb-4">
-                    <h4>Streamlined Operations</h4>
-                    <p>Simplify complex inventory and order management tasks so you can focus on growing your business.</p>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <h4>Real-Time Updates</h4>
-                    <p>Monitor stock levels, batch tracking, and order status in real-time from anywhere.</p>
-                </div>
-            </div>
-            <div class="row text-center">
-                <div class="col-md-6 mb-4">
-                    <h4>Scalability</h4>
-                    <p>Add new products, customers, and orders as your business grows.</p>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <h4>Customizable Features</h4>
-                    <p>Customize invoices, branding, and workflows to match your business needs.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Testimonials -->
+<!-- TESTIMONIALS -->
 <section class="container section-gap">
-    <h2 class="text-center mb-4">What Our Customers Say</h2>
-    <div class="row">
-        <div class="col-md-4 text-center">
-            <blockquote class="blockquote">
-                <p>"This platform completely transformed how we manage inventory."</p>
-                <footer class="blockquote-footer">Jane Doe, CEO of XYZ Corp.</footer>
-            </blockquote>
-        </div>
-        <div class="col-md-4 text-center">
-            <blockquote class="blockquote">
-                <p>"Invoice generation is fast and extremely professional."</p>
-                <footer class="blockquote-footer">John Smith, Owner of ABC Enterprises</footer>
-            </blockquote>
-        </div>
-        <div class="col-md-4 text-center">
-            <blockquote class="blockquote">
-                <p>"Managing multiple stores is now effortless."</p>
-                <footer class="blockquote-footer">Sarah Lee, Retail Solutions</footer>
-            </blockquote>
-        </div>
-    </div>
+<h2 class="text-center mb-5">Trusted by Growing Businesses</h2>
+
+<div class="row">
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<p>
+“Before StockGuard, we were constantly losing products to expiry without even realizing it.
+Now we get alerts early and act fast — it has saved us thousands.”
+</p>
+<h6 class="mt-3 mb-0">— Chinedu Okafor</h6>
+<small class="text-muted">Pharmacy Owner</small>
+</div>
+</div>
+</div>
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<p>
+“Our inventory used to be chaotic. Orders, stock levels, everything was manual.
+StockGuard automated everything and gave us full visibility.”
+</p>
+<h6 class="mt-3 mb-0">— Aisha Bello</h6>
+<small class="text-muted">Retail Store Manager</small>
+</div>
+</div>
+</div>
+
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body">
+<p>
+“The low stock alerts alone are worth it. We never run out of fast-selling products anymore.
+It’s like having a smart assistant for inventory.”
+</p>
+<h6 class="mt-3 mb-0">— Tunde Adeyemi</h6>
+<small class="text-muted">Wholesale Distributor</small>
+</div>
+</div>
+</div>
+
+</div>
 </section>
 
-<!-- Final CTA -->
+<!-- BLOG -->
+<section class="container section-gap">
+<h2 class="text-center mb-5">Latest Insights</h2>
+
+<div class="row">
+
+{% if blogs %}
+    {% for post in blogs|slice:":3" %}
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column">
+
+                <h5>{{ post.title }}</h5>
+
+                <p class="text-muted small">
+                    By {{ post.author.username }} • {{ post.created_at }}
+                </p>
+
+                <p class="text-muted">
+                    {{ post.content|truncatewords:20 }}
+                </p>
+
+                <a href="#" class="btn btn-outline-primary mt-auto">
+                    Read More
+                </a>
+
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+{% else %}
+
+    <!-- DEMO CARD 1 -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column">
+                <h5>How to Prevent Inventory Loss in Your Business</h5>
+                <p class="text-muted small">
+                    By Admin • Recently
+                </p>
+                <p class="text-muted">
+                    Discover practical strategies to reduce stock loss, improve tracking,
+                    and ensure your inventory system works efficiently.
+                </p>
+                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO CARD 2 -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column">
+                <h5>5 Common Inventory Mistakes Businesses Make</h5>
+                <p class="text-muted small">
+                    By Admin • Recently
+                </p>
+                <p class="text-muted">
+                    Avoid costly mistakes that lead to stockouts and expired products.
+                    Learn how to manage inventory the smart way.
+                </p>
+                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO CARD 3 -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column">
+                <h5>Why Real-Time Stock Tracking is Important</h5>
+                <p class="text-muted small">
+                    By Admin • Recently
+                </p>
+                <p class="text-muted">
+                    Real-time tracking helps you make better decisions, prevent stock issues,
+                    and improve overall business efficiency.
+                </p>
+                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+</div>
+</section>
+<!-- CTA -->
 <section class="text-center py-5 bg-light section-gap">
-    <h3 class="display-5">Ready to Simplify Your Inventory Management?</h3>
-    <p class="lead text-muted mb-4">Sign up now and take control of your business with our powerful SaaS platform.</p>
-    <a href="/signup/" class="btn btn-primary btn-lg">Get Started</a>
+<h3 class="display-5">Take Control of Your Inventory Today</h3>
+<p class="text-muted">Join businesses already using StockGuard to reduce losses and increase efficiency.</p>
+<a href="/signup/" class="btn btn-primary btn-lg">Start Free Trial</a>
 </section>
 
-<!-- Pricing Plans -->
+<!-- PRICING -->
 <section class="container section-gap">
-    <h2 class="text-center mb-5">Choose Your Plan</h2>
-    <div class="row">
+<h2 class="text-center mb-5">Simple, Transparent Pricing</h2>
 
-        <!-- Free Trial Card -->
-        <div class="col-md-3 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">7-Day Free Trial</h5>
-                    <p class="card-text text-muted">
-                        Try all basic features for 7 days. No payment required.
-                    </p>
-                    <p class="h5 text-primary">₦0</p>
-                    <ul class="text-muted small mb-3">
-                        <li>Up to 5 products</li>
-                        <li>Basic product management</li>
-                        <li>Invoice generation</li>
-                        <li>Low stock alerts</li>
-                    </ul>
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-outline-primary mt-auto" disabled>
-                            Active Trial
-                        </button>
-                    {% else %}
-                        <a href="/signup/" class="btn btn-outline-primary mt-auto">
-                            Start Free Trial
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<div class="row">
 
-        <!-- Starter Plan -->
-        <div class="col-md-3 mb-4">
-            <div class="card shadow h-100 border-primary">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Starter</h5>
-                    <p class="card-text text-muted">
-                        Perfect for small businesses with basic needs.
-                    </p>
-                    <p class="h5 text-primary">₦5,000</p>
-                    <ul class="text-muted small mb-3">
-                        <li>Up to 30 products</li>
-                        <li>All basic features</li>
-                        <li>Invoice & order tracking</li>
-                        <li>Low stock & expiry alerts</li>
-                    </ul>
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-primary mt-auto paystack-btn"
-                            data-plan="starter"
-                            data-email="{{ profile.email }}"
-                            data-amount="500000">
-                            Upgrade to Starter
-                        </button>
-                    {% else %}
-                        <a href="/signup/" class="btn btn-primary mt-auto">
-                            Signup to Access
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<!-- STARTER -->
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100">
+<div class="card-body d-flex flex-column">
+<h5>Starter</h5>
+<p class="text-muted">Perfect for small businesses just getting started.</p>
+<h4>₦5,000</h4>
 
-        <!-- Professional Plan -->
-        <div class="col-md-3 mb-4">
-            <div class="card shadow h-100 border-success">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Professional</h5>
-                    <p class="card-text text-muted">
-                        Advanced features for growing businesses.
-                    </p>
-                    <p class="h5 text-success">₦10,000</p>
-                    <ul class="text-muted small mb-3">
-                        <li>Up to 200 products</li>
-                        <li>All Starter features</li>
-                        <li>Detailed reports & analytics</li>
-                        <li>Multi-user access</li>
-                    </ul>
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-success mt-auto paystack-btn"
-                            data-plan="professional"
-                            data-email="{{ profile.email }}"
-                            data-amount="1000000">
-                            Upgrade to Professional
-                        </button>
-                    {% else %}
-                        <a href="/signup/" class="btn btn-success mt-auto">
-                            Signup to Access
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<ul class="text-muted small mb-3">
+<li>Up to 30 products</li>
+<li>Low stock alerts</li>
+<li>Expiry tracking</li>
+<li>Basic invoices</li>
+</ul>
 
-        <!-- Business Plan -->
-        <div class="col-md-3 mb-4">
-            <div class="card shadow h-100 border-warning">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Business</h5>
-                    <p class="card-text text-muted">
-                        Full features for enterprises with unlimited products.
-                    </p>
-                    <p class="h5 text-warning">₦25,000</p>
-                    <ul class="text-muted small mb-3">
-                        <li>Unlimited products</li>
-                        <li>All Professional features</li>
-                        <li>Priority support</li>
-                        <li>Custom integrations</li>
-                    </ul>
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-warning mt-auto paystack-btn"
-                            data-plan="business"
-                            data-email="{{ profile.email }}"
-                            data-amount="2500000">
-                            Upgrade to Business
-                        </button>
-                    {% else %}
-                        <a href="/signup/" class="btn btn-warning mt-auto">
-                            Signup to Access
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+{% if user.is_authenticated %}
+<button class="btn btn-primary mt-auto paystack-btn"
+data-plan="starter"
+data-email="{{ profile.email }}"
+data-amount="500000">
+Upgrade Plan
+</button>
+{% else %}
+<a href="/signup/" class="btn btn-outline-primary mt-auto">
+Signup to Get Started
+</a>
+{% endif %}
 
-    </div>
+</div>
+</div>
+</div>
+
+<!-- PRO -->
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100 border-success">
+<div class="card-body d-flex flex-column">
+<h5>Professional</h5>
+<p class="text-muted">Best for growing businesses that need more control.</p>
+<h4 class="text-success">₦10,000</h4>
+
+<ul class="text-muted small mb-3">
+<li>Up to 200 products</li>
+<li>Advanced reporting</li>
+<li>Order tracking</li>
+<li>Multi-user access</li>
+</ul>
+
+{% if user.is_authenticated %}
+<button class="btn btn-success mt-auto paystack-btn"
+data-plan="pro"
+data-email="{{ profile.email }}"
+data-amount="1000000">
+Upgrade Plan
+</button>
+{% else %}
+<a href="/signup/" class="btn btn-outline-success mt-auto">
+Signup to Get Started
+</a>
+{% endif %}
+
+</div>
+</div>
+</div>
+
+<!-- BUSINESS -->
+<div class="col-md-4 mb-4">
+<div class="card shadow h-100 border-warning">
+<div class="card-body d-flex flex-column">
+<h5>Business</h5>
+<p class="text-muted">For large businesses and enterprises.</p>
+<h4 class="text-warning">₦25,000</h4>
+
+<ul class="text-muted small mb-3">
+<li>Unlimited products</li>
+<li>Full analytics</li>
+<li>Priority support</li>
+<li>Custom integrations</li>
+</ul>
+
+{% if user.is_authenticated %}
+<button class="btn btn-warning mt-auto paystack-btn"
+data-plan="business"
+data-email="{{ profile.email }}"
+data-amount="2500000">
+Upgrade Plan
+</button>
+{% else %}
+<a href="/signup/" class="btn btn-outline-warning mt-auto">
+Signup to Get Started
+</a>
+{% endif %}
+
+</div>
+</div>
+</div>
+
+</div>
 </section>
-<!-- Paystack JS -->
-<script src="https://js.paystack.co/v1/inline.js"></script>
-<script>
-const payButtons = document.querySelectorAll('.paystack-btn');
-payButtons.forEach(btn => {
-    btn.addEventListener('click', function(){
-        const planName = this.dataset.plan;
-        const email = this.dataset.email;
-        const amount = this.dataset.amount;
-
-        var handler = PaystackPop.setup({
-            key: '{{ PAYSTACK_PUBLIC_KEY }}',
-            email: email,
-            amount: amount,
-            currency: "NGN",
-            callback: function(response){
-                fetch("{% url 'paystack_verify' %}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({reference: response.reference, plan: planName})
-                }).then(res => res.json())
-                  .then(data => {
-                    if(data.status == "success"){
-                        alert("Payment successful! Plan upgraded.");
-                        location.reload();
-                    } else {
-                        alert("Payment failed. Try again.");
-                    }
-                  });
-            },
-            onClose: function(){
-                alert('Payment window closed.');
-            }
-        });
-        handler.openIframe();
-    });
-});
-</script>
 
 {% endblock %}

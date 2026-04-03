@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from datetime import timedelta
 from collections import defaultdict
 import requests
-from .models import Product, Customer, Order, OrderItem, Batch, Invoice, Business,Profile
+from .models import Product, Customer, Order, OrderItem, Batch, Invoice, Business,Profile, Blog
 from .decorators import subscription_required
 from .models import Profile
 from django.conf import settings
@@ -111,15 +111,54 @@ def logout_view(request):
 
 
 
+# Blog
+
+
+def blog_view(request):
+    blogs = Blog.objects.all().order_by('-created_at')  # Fetch all blog posts
+    return render(request, 'blog.html', {"blogs": blogs})
 
 
 
+def blog_detail(request, slug):
+    post = get_object_or_404(Blog, slug=slug)
+    related = Blog.objects.exclude(id=post.id).order_by('-created_at')[:3]
+
+    return render(request, 'blog_detail.html', {
+        "post": post,
+        "related": related
+    })
+    
+    
+    
 
 # --------------------------
 # Home / Dashboard
 # --------------------------
+
+
+
+
+from .models import DemoVideo
+
+
+
 def home(request):
-    return render(request, "home.html")
+    # Get the latest demo video
+    video = DemoVideo.objects.last()
+
+    # Get latest 3 blog posts (for home page section)
+    blogs = Blog.objects.all().order_by('-created_at')[:3]
+
+    # Handle video upload for staff only
+    if request.method == "POST" and request.user.is_staff:
+        file = request.FILES.get('video')
+        if file:
+            DemoVideo.objects.create(video_file=file)
+        return redirect('/')
+
+    # Pass video and blogs to template
+    return render(request, 'home.html', {"video": video, "blogs": blogs})
 
 
 
@@ -276,7 +315,6 @@ def product_create(request):
         Product.objects.create(
             business=business,
             name=request.POST.get("name"),
-            sku=request.POST.get("sku"),
             cost_price=request.POST.get("cost_price"),
             selling_price=request.POST.get("selling_price"),
         )
@@ -293,7 +331,6 @@ def product_update(request, id):
     product = get_object_or_404(Product, id=id, business=request.user.business)
     if request.method == "POST":
         product.name = request.POST["name"]
-        product.sku = request.POST["sku"]
         product.cost_price = request.POST["cost_price"]
         product.selling_price = request.POST["selling_price"]
         product.save()

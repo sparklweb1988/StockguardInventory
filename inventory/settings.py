@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-change-this-in-production"
 
-DEBUG = True  # Set to False in production
+DEBUG = False # Set to False in production
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
 
@@ -137,6 +137,9 @@ USE_TZ = True
 # ---------------------------------------------------
 
 STATIC_URL = "/static/"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Directory where Django will collect static files for production
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-
+from datetime import date
 
 # ==========================
 # BUSINESS
@@ -17,14 +17,36 @@ class Business(models.Model):
 
 
 
+from django.utils.text import slugify
 
+class Blog(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True, blank=True)  # 👈 ADD THIS
+    content = models.TextField()
+    created_at = models.DateField(auto_now_add=True)
+    updated_on = models.DateField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
+class DemoVideo(models.Model):
+    video_file = models.FileField(upload_to='videos/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    
 # ==========================
 # PRODUCT
 # ==========================
 class Product(models.Model):
     business = models.ForeignKey(Business, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    sku = models.CharField(max_length=100)
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -68,7 +90,18 @@ class Batch(models.Model):
         ordering = ['expiry_date']
 
     def is_expired(self):
-        return self.expiry_date < timezone.now().date()
+        today = date.today()
+        days_left = (self.expiry_date - today).days
+
+        if days_left < 0:
+            return "Expired"
+        elif days_left <= 7:
+            return "Expires in 7 days"
+        elif days_left <= 30:
+            return "Expires in 1 month"
+        elif days_left <= 90:
+            return "Expires in 3 months"
+        return "Safe"
 
 
 
