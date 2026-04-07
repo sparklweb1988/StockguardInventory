@@ -4,23 +4,26 @@
 {% block content %}
 
 <style>
-.screenshot-img {
-    border: 3px solid #dee2e6;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
-    transition: transform 0.3s ease;
-}
-.screenshot-img:hover {
-    transform: scale(1.02);
-}
-.hero-section {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-}
-.section-gap {
-    margin-top: 80px;
-}
+    .screenshot-img {
+        border: 3px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+        transition: transform 0.3s ease;
+    }
+
+    .screenshot-img:hover {
+        transform: scale(1.02);
+    }
+
+    .hero-section {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-gap {
+        margin-top: 80px;
+    }
 </style>
 
 <!-- HERO -->
@@ -38,7 +41,8 @@
                 </h1>
 
                 <p class="lead text-muted mt-3">
-                    StockGuard helps you track inventory in real-time, prevent stockouts, and avoid expired products — all from one powerful dashboard.
+                    StockGuard helps you track inventory in real-time, prevent stockouts, and avoid expired products —
+                    all from one powerful dashboard.
                 </p>
 
                 <p class="text-muted">
@@ -46,9 +50,9 @@
                 </p>
 
                 {% if not user.is_authenticated %}
-                    <a href="/signup/" class="btn btn-primary btn-lg me-2">Start Free Trial</a>
+                <a href="/signup/" class="btn btn-primary btn-lg me-2">Start Free Trial</a>
                 {% else %}
-                    <a href="/dashboard/" class="btn btn-success btn-lg">Go to Dashboard</a>
+                <a href="/dashboard/" class="btn btn-success btn-lg">Go to Dashboard</a>
                 {% endif %}
             </div>
 
@@ -64,11 +68,11 @@
 
         <div class="col-md-6 mb-4">
             {% if video %}
-                <video controls class="w-100 rounded shadow">
-                    <source src="{{ video.video_file.url }}" type="video/mp4">
-                </video>
+            <video controls class="w-100 rounded shadow">
+                <source src="{{ video.video_file.url }}" type="video/mp4">
+            </video>
             {% else %}
-                <div class="alert alert-info">Upload a demo video to showcase your product.</div>
+            <div class="alert alert-info">Upload a demo video to showcase your product.</div>
             {% endif %}
         </div>
 
@@ -90,196 +94,196 @@
 
 <!-- FEATURES -->
 <section class="container section-gap">
-<h2 class="text-center mb-5">Everything You Need to Manage Inventory</h2>
+    <h2 class="text-center mb-5">Everything You Need to Manage Inventory</h2>
 
-<div class="row text-center">
+    <div class="row text-center">
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<h5>Smart Stock Alerts</h5>
-<p class="text-muted">
-Never run out of products again. Get notified instantly when stock is low or finished.
-</p>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Smart Stock Alerts</h5>
+                    <p class="text-muted">
+                        Never run out of products again. Get notified instantly when stock is low or finished.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<h5>Expiry Tracking System</h5>
-<p class="text-muted">
-Avoid losses from expired goods with automatic alerts at 3 months, 1 month, and 7 days.
-</p>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Expiry Tracking System</h5>
+                    <p class="text-muted">
+                        Avoid losses from expired goods with automatic alerts at 3 months, 1 month, and 7 days.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<h5>Invoices & Orders</h5>
-<p class="text-muted">
-Create professional invoices and track every order while your stock updates automatically.
-</p>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <h5>Invoices & Orders</h5>
+                    <p class="text-muted">
+                        Create professional invoices and track every order while your stock updates automatically.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-</div>
+    </div>
 </section>
 
 <!-- TESTIMONIALS -->
 <section class="container section-gap">
-<h2 class="text-center mb-5">Trusted by Growing Businesses</h2>
+    <h2 class="text-center mb-5">Trusted by Growing Businesses</h2>
 
-<div class="row">
+    <div class="row">
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<p>
-“Before StockGuard, we were constantly losing products to expiry without even realizing it.
-Now we get alerts early and act fast — it has saved us thousands.”
-</p>
-<h6 class="mt-3 mb-0">— Chinedu Okafor</h6>
-<small class="text-muted">Pharmacy Owner</small>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <p>
+                        “Before StockGuard, we were constantly losing products to expiry without even realizing it.
+                        Now we get alerts early and act fast — it has saved us thousands.”
+                    </p>
+                    <h6 class="mt-3 mb-0">— Chinedu Okafor</h6>
+                    <small class="text-muted">Pharmacy Owner</small>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<p>
-“Our inventory used to be chaotic. Orders, stock levels, everything was manual.
-StockGuard automated everything and gave us full visibility.”
-</p>
-<h6 class="mt-3 mb-0">— Aisha Bello</h6>
-<small class="text-muted">Retail Store Manager</small>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <p>
+                        “Our inventory used to be chaotic. Orders, stock levels, everything was manual.
+                        StockGuard automated everything and gave us full visibility.”
+                    </p>
+                    <h6 class="mt-3 mb-0">— Aisha Bello</h6>
+                    <small class="text-muted">Retail Store Manager</small>
+                </div>
+            </div>
+        </div>
 
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100">
-<div class="card-body">
-<p>
-“The low stock alerts alone are worth it. We never run out of fast-selling products anymore.
-It’s like having a smart assistant for inventory.”
-</p>
-<h6 class="mt-3 mb-0">— Tunde Adeyemi</h6>
-<small class="text-muted">Wholesale Distributor</small>
-</div>
-</div>
-</div>
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body">
+                    <p>
+                        “The low stock alerts alone are worth it. We never run out of fast-selling products anymore.
+                        It’s like having a smart assistant for inventory.”
+                    </p>
+                    <h6 class="mt-3 mb-0">— Tunde Adeyemi</h6>
+                    <small class="text-muted">Wholesale Distributor</small>
+                </div>
+            </div>
+        </div>
 
-</div>
+    </div>
 </section>
 
 <!-- BLOG -->
 <section class="container section-gap">
-<h2 class="text-center mb-5">Latest Insights</h2>
+    <h2 class="text-center mb-5">Latest Insights</h2>
 
-<div class="row">
+    <div class="row">
 
-{% if blogs %}
-    {% for post in blogs|slice:":3" %}
-    <div class="col-md-4 mb-4">
-        <div class="card shadow h-100">
-            <div class="card-body d-flex flex-column">
+        {% if blogs %}
+        {% for post in blogs|slice:":3" %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body d-flex flex-column">
 
-                <h5>{{ post.title }}</h5>
+                    <h5>{{ post.title }}</h5>
 
-                <p class="text-muted small">
-                    By {{ post.author.username }} • {{ post.created_at }}
-                </p>
+                    <p class="text-muted small">
+                        By {{ post.author.username }} • {{ post.created_at }}
+                    </p>
 
-                <p class="text-muted">
-                    {{ post.content|truncatewords:20 }}
-                </p>
+                    <p class="text-muted">
+                        {{ post.content|truncatewords:20 }}
+                    </p>
 
-                <a href="#" class="btn btn-outline-primary mt-auto">
-                    Read More
-                </a>
+                    <a href="#" class="btn btn-outline-primary mt-auto">
+                        Read More
+                    </a>
 
+                </div>
             </div>
         </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
 
-{% else %}
+        {% else %}
 
-    <!-- DEMO CARD 1 -->
-    <div class="col-md-4 mb-4">
-        <div class="card shadow h-100">
-            <div class="card-body d-flex flex-column">
-                <h5>How to Prevent Inventory Loss in Your Business</h5>
-                <p class="text-muted small">
-                    By Admin • Recently
-                </p>
-                <p class="text-muted">
-                    Discover practical strategies to reduce stock loss, improve tracking,
-                    and ensure your inventory system works efficiently.
-                </p>
-                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+        <!-- DEMO CARD 1 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5>How to Prevent Inventory Loss in Your Business</h5>
+                    <p class="text-muted small">
+                        By Admin • Recently
+                    </p>
+                    <p class="text-muted">
+                        Discover practical strategies to reduce stock loss, improve tracking,
+                        and ensure your inventory system works efficiently.
+                    </p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- DEMO CARD 2 -->
-    <div class="col-md-4 mb-4">
-        <div class="card shadow h-100">
-            <div class="card-body d-flex flex-column">
-                <h5>5 Common Inventory Mistakes Businesses Make</h5>
-                <p class="text-muted small">
-                    By Admin • Recently
-                </p>
-                <p class="text-muted">
-                    Avoid costly mistakes that lead to stockouts and expired products.
-                    Learn how to manage inventory the smart way.
-                </p>
-                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+        <!-- DEMO CARD 2 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5>5 Common Inventory Mistakes Businesses Make</h5>
+                    <p class="text-muted small">
+                        By Admin • Recently
+                    </p>
+                    <p class="text-muted">
+                        Avoid costly mistakes that lead to stockouts and expired products.
+                        Learn how to manage inventory the smart way.
+                    </p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- DEMO CARD 3 -->
-    <div class="col-md-4 mb-4">
-        <div class="card shadow h-100">
-            <div class="card-body d-flex flex-column">
-                <h5>Why Real-Time Stock Tracking is Important</h5>
-                <p class="text-muted small">
-                    By Admin • Recently
-                </p>
-                <p class="text-muted">
-                    Real-time tracking helps you make better decisions, prevent stock issues,
-                    and improve overall business efficiency.
-                </p>
-                <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+        <!-- DEMO CARD 3 -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5>Why Real-Time Stock Tracking is Important</h5>
+                    <p class="text-muted small">
+                        By Admin • Recently
+                    </p>
+                    <p class="text-muted">
+                        Real-time tracking helps you make better decisions, prevent stock issues,
+                        and improve overall business efficiency.
+                    </p>
+                    <a href="#" class="btn btn-outline-primary mt-auto">Read More</a>
+                </div>
             </div>
         </div>
+
+        {% endif %}
+
     </div>
-
-{% endif %}
-
-</div>
 </section>
 <!-- CTA -->
 <section class="text-center py-5 bg-light section-gap">
-<h3 class="display-5">Take Control of Your Inventory Today</h3>
-<p class="text-muted">Join businesses already using StockGuard to reduce losses and increase efficiency.</p>
-<a href="/signup/" class="btn btn-primary btn-lg">Start Free Trial</a>
+    <h3 class="display-5">Take Control of Your Inventory Today</h3>
+    <p class="text-muted">Join businesses already using StockGuard to reduce losses and increase efficiency.</p>
+    <a href="/signup/" class="btn btn-primary btn-lg">Start Free Trial</a>
 </section>
 
 <!-- PRICING -->
-<section class="container section-gap">
+<!-- <section class="container section-gap">
 <h2 class="text-center mb-5">Simple, Transparent Pricing</h2>
 
 <div class="row">
 
-<!-- STARTER -->
+
 <div class="col-md-4 mb-4">
 <div class="card shadow h-100">
 <div class="card-body d-flex flex-column">
@@ -311,71 +315,14 @@ Signup to Get Started
 </div>
 </div>
 
-<!-- PRO -->
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100 border-success">
-<div class="card-body d-flex flex-column">
-<h5>Professional</h5>
-<p class="text-muted">Best for growing businesses that need more control.</p>
-<h4 class="text-success">₦10,000</h4>
 
-<ul class="text-muted small mb-3">
-<li>Up to 200 products</li>
-<li>Advanced reporting</li>
-<li>Order tracking</li>
-<li>Multi-user access</li>
-</ul>
 
-{% if user.is_authenticated %}
-<button class="btn btn-success mt-auto paystack-btn"
-data-plan="pro"
-data-email="{{ profile.email }}"
-data-amount="1000000">
-Upgrade Plan
-</button>
-{% else %}
-<a href="/signup/" class="btn btn-outline-success mt-auto">
-Signup to Get Started
-</a>
-{% endif %}
-
-</div>
-</div>
-</div>
-
-<!-- BUSINESS -->
-<div class="col-md-4 mb-4">
-<div class="card shadow h-100 border-warning">
-<div class="card-body d-flex flex-column">
-<h5>Business</h5>
-<p class="text-muted">For large businesses and enterprises.</p>
-<h4 class="text-warning">₦25,000</h4>
-
-<ul class="text-muted small mb-3">
-<li>Unlimited products</li>
-<li>Full analytics</li>
-<li>Priority support</li>
-<li>Custom integrations</li>
-</ul>
-
-{% if user.is_authenticated %}
-<button class="btn btn-warning mt-auto paystack-btn"
-data-plan="business"
-data-email="{{ profile.email }}"
-data-amount="2500000">
-Upgrade Plan
-</button>
-{% else %}
-<a href="/signup/" class="btn btn-outline-warning mt-auto">
-Signup to Get Started
-</a>
-{% endif %}
 
 </div>
 </div>
 </div>
 
 </div>
-</section>
+</section> -->
 
 {% endblock %}

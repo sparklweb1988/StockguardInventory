@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from django.contrib import admin
 from .models import Profile, Business, Product, Batch, Customer, Order, OrderItem, Invoice, Blog
 
@@ -23,12 +25,27 @@ admin.site.register(Blog, BlogAdmin)
 
 
 
-
-
-
-# Register Profile to manage subscription plans
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'plan', 'plan_expiry', 'paystack_ref', 'is_active')
-    search_fields = ('user__username', 'user__email', 'paystack_ref')
-    list_filter = ('plan',)
+    list_display = (
+        'user',
+        'subscription_code',
+        'subscription_expiry',
+        'paystack_customer_code',
+        'is_paid',
+        'has_active_subscription',
+    )
+    search_fields = (
+        'user__username',
+        'user__email',
+        'paystack_customer_code',
+        'subscription_code',
+    )
+    list_filter = ('subscription_expiry', 'is_paid')
+
+    def has_active_subscription(self, obj):
+        if obj.subscription_code and obj.subscription_expiry:
+            return obj.subscription_expiry > timezone.now()
+        return False
+    has_active_subscription.boolean = True
+    has_active_subscription.short_description = 'Active Subscription'

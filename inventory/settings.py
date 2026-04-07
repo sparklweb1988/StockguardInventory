@@ -19,17 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-change-this-in-production"
 
-DEBUG = False # Set to False in production
+DEBUG = True# Set to False in production
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
 
-# ---------------------------------------------------
-# PAYSTACK SETTINGS
-# ---------------------------------------------------
-
-# PAYSTACK_PUBLIC_KEY = "pk_test_xxxxx"  # Replace with your public key
-# PAYSTACK_SECRET_KEY = "sk_test_xxxxx"  # Replace with your secret key
-# PAYSTACK_BASE_URL = "https://api.paystack.co"
 
 # ---------------------------------------------------
 # APPLICATIONS
@@ -59,7 +52,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "core.middleware.subscription.SubscriptionRequiredMiddleware",
+    # "core.middleware.subscription.SubscriptionRequiredMiddleware",  <-- removed
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -142,7 +135,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Directory where Django will collect static files for production
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+#STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Additional directories for static files (development)
 STATICFILES_DIRS = [
@@ -150,9 +143,18 @@ STATICFILES_DIRS = [
 ]
 
 # Whitenoise storage backend for compressed, versioned static files
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
+
+
+
+#  paystack
+
+
+
+PAYSTACK_SECRET_KEY = "sk_test_6bb11aceba825966be24302c959c0dcd5ef47dcb"
+PAYSTACK_PLAN_CODE = "PLN_wcrzai3si0ye2tf"  
 
 # ---------------------------------------------------
 # DEFAULT AUTO FIELD

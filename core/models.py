@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from datetime import date
-
+from django.utils.text import slugify
 # ==========================
 # BUSINESS
 # ==========================
@@ -17,7 +17,7 @@ class Business(models.Model):
 
 
 
-from django.utils.text import slugify
+
 
 class Blog(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -199,45 +199,31 @@ class Invoice(models.Model):
  
  
  
- 
- 
-# models.py (Profile)
-
-
 
 
 class Profile(models.Model):
-    PLAN_CHOICES = (
-        ('free', 'Free'),
-        ('starter', 'Starter'),
-        ('professional', 'Professional'),
-        ('business', 'Business'),
-    )
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
-    plan_expiry = models.DateTimeField(null=True, blank=True)
-    paystack_ref = models.CharField(max_length=200, blank=True, null=True)
+    business = models.OneToOneField(Business, on_delete=models.CASCADE, null=True, blank=True)
+    is_paid = models.BooleanField(default=False)
+    paystack_customer_code = models.CharField(max_length=100, blank=True, null=True)
+    subscription_code = models.CharField(max_length=100, blank=True, null=True)
+    subscription_expiry = models.DateTimeField(blank=True, null=True)
 
-    def is_active(self):
-        """Return True if plan is active (paid plan and not expired)"""
-        return self.plan != 'free' and self.plan_expiry and self.plan_expiry > timezone.now()
+    FREE_PRODUCT_LIMIT = 5
+    FREE_TRIAL_DAYS = 7
+
+    def has_active_subscription(self):
+        """Paid subscription or free trial not expired."""
+        if self.is_paid:
+            return True
+        if self.subscription_expiry and self.subscription_expiry > timezone.now():
+            return True
+        return False
 
     def is_trial_active(self):
-        """Return True if free trial is active"""
-        return self.plan == 'free' and (self.plan_expiry is None or self.plan_expiry > timezone.now())
+        """Check if user is in free trial period."""
+        return self.subscription_expiry and self.subscription_expiry > timezone.now() and not self.is_paid
 
     def product_limit(self):
-        """Return product limit based on plan"""
-        if self.plan == 'free':
-            return 7
-        elif self.plan == 'starter':
-            return 20
-        elif self.plan == 'professional':
-            return 200
-        elif self.plan == 'business':
-            return None  # unlimited
-        return 0
-
-    def __str__(self):
-        return self.user.username
+        """Return max products allowed based on plan."""
+        return None if self.is_paid else self.FREE_PRODUCT_LIMIT
