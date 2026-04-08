@@ -17,6 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 # -------------------------------
 
 
+
 def signup(request):
     if request.method == "POST":
         username = request.POST.get('username')
@@ -24,12 +25,16 @@ def signup(request):
         password = request.POST.get('password')
         business_name = request.POST.get('business_name')
 
-        # ✅ Validate fields
+        # -----------------------------
+        # Validate required fields
+        # -----------------------------
         if not username or not email or not password or not business_name:
             messages.error(request, "All fields are required.")
             return redirect('signup')
 
-        # ✅ Check duplicates
+        # -----------------------------
+        # Check for duplicates
+        # -----------------------------
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already taken.")
             return redirect('signup')
@@ -38,26 +43,39 @@ def signup(request):
             messages.error(request, "Email already registered.")
             return redirect('signup')
 
-        # ✅ Create user (this triggers signals)
+        # -----------------------------
+        # Create user (triggers signals)
+        # -----------------------------
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
 
-        # ✅ Update business name (created by signal)
-        business = user.profile.business
-        business.name = business_name
-        business.save()
+        # -----------------------------
+        # Safely get profile (fallback if signal didn't run yet)
+        # -----------------------------
+        try:
+            profile = user.profile
+        except Profile.DoesNotExist:
+            # Signal didn't fire, create profile and business manually
+            business = Business.objects.create(name=f"{username}'s Business")
+            profile = Profile.objects.create(
+                user=user,
+                business=business
+            )
+
+        # -----------------------------
+        # Update business name from form
+        # -----------------------------
+        if profile.business:
+            profile.business.name = business_name
+            profile.business.save()
 
         messages.success(request, "Account created successfully! You can now login.")
         return redirect('login')
 
     return render(request, "signup.html")
-
-
-
-
 
 def login_view(request):
     if request.method == "POST":
