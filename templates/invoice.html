@@ -4,13 +4,18 @@
 <div class="row justify-content-center py-5">
     <div class="col-md-8">
         <div class="card shadow-sm p-4">
-            <h2 class="mb-4 text-center">Invoice {{ invoice.invoice_number }}</h2>
+            <h2 class="mb-4 text-center">{{user.profile.business.name}}</h2>
 
             <div class="mb-3">
                 <strong>Customer:</strong> {{ invoice.customer_name }}<br>
                 <strong>Issued At:</strong> {{ invoice.issued_at|date:"Y-m-d H:i" }}<br>
                 <strong>Due Date:</strong> {{ invoice.due_date|date:"Y-m-d" }}<br>
-                <strong>Status:</strong> {% if invoice.paid %} Paid {% else %} Unpaid {% endif %}
+                <strong>Status:</strong> 
+                {% if invoice.order.status == "paid" %}
+                    Paid
+                {% else %}
+                    Unpaid
+                {% endif %}
             </div>
 
             <table class="table table-bordered">
@@ -23,25 +28,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in order.items.all %}
+                    {% for item in invoice.order.items.all %}
                     <tr>
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>{{ item.price }}</td>
                         <td>{{ item.total_price }}</td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No items in this order.</td>
+                    </tr>
                     {% endfor %}
                     <tr>
                         <td colspan="3" class="text-end"><strong>Subtotal</strong></td>
-                        <td>{{ order.subtotal }}</td>
+                        <td>{{ invoice.order.subtotal }}</td>
                     </tr>
                     <tr>
                         <td colspan="3" class="text-end"><strong>Total</strong></td>
-                        <td>{{ order.total }}</td>
+                        <td>{{ invoice.order.total }}</td>
                     </tr>
                 </tbody>
             </table>
-
             <a href="/orders/" class="btn btn-secondary mt-3">Back to Orders</a>
             <a href="#" onclick="window.print();" class="btn btn-primary mt-3">Print Invoice</a>
         </div>

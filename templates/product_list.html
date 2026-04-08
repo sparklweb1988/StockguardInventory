@@ -22,34 +22,32 @@
         {% for product in products %}
         <tr>
             <td>{{ product.name }}</td>
-            <td>{{ product.business.name}}</td>
+            <td>{{ product.business.name }}</td>
             <td>
                 {{ product.total_stock }}
+
+                {# Expired stock badge #}
                 {% if product.expired_stock_warning %}
-                <span class="badge bg-danger ms-2">Expired Stock</span>
+                    <span class="badge bg-danger ms-2">Expired Stock</span>
                 {% endif %}
+
+                {# Low stock badge #}
                 {% if product.low_stock_warning %}
-                <span class="badge bg-warning ms-2">Low Stock</span>
+                    <span class="badge bg-warning ms-2">Low Stock</span>
                 {% endif %}
+
                 <a href="/batches/{{ product.id }}/" class="btn btn-sm btn-info ms-2">Manage Stock</a>
             </td>
             <td>&#8358; {{ product.cost_price }}</td>
-            <td>&#8358; {{ product.selling_price}}</td>
+            <td>&#8358; {{ product.selling_price }}</td>
             <td>
-
-                <a href="{% url 'product_update' product.id %}" class="btn btn-warning btn-sm">
-                Update
-                </a>
-                
-                <a href="{% url 'product_delete' product.id %}" class="btn btn-danger btn-sm">
-                Delete
-                </a>
-                
-                </td>
+                <a href="{% url 'product_update' product.id %}" class="btn btn-warning btn-sm">Update</a>
+                <a href="{% url 'product_delete' product.id %}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4" class="text-center">No products found.</td>
+            <td colspan="6" class="text-center">No products found.</td>
         </tr>
         {% endfor %}
     </tbody>

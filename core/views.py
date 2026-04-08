@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Product, Batch, Customer, Order, Business, Profile, Blog
+from .models import Product, Batch, Customer, Order, Business, Profile, Blog,OrderItem,Invoice
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -47,21 +47,24 @@ def logout_view(request):
 # -------------------------------
 # Dashboard / Home
 # -------------------------------
+
+
+
 def dashboard(request):
     profile = request.user.profile
     today = timezone.now().date()
 
-    # Products
+    # ==========================
+    # Basic Counts
+    # ==========================
     total_products = Product.objects.filter(business=profile.business).count()
 
-    # Customers added this month
     total_customers = Customer.objects.filter(
         business=profile.business,
         created_at__month=today.month,
         created_at__year=today.year
     ).count()
 
-    # Orders placed this month
     total_orders = Order.objects.filter(
         business=profile.business,
         created_at__month=today.month,
@@ -74,31 +77,41 @@ def dashboard(request):
         batches__expiry_date__lt=today
     ).distinct().count()
 
-    # Total sales (sum of orders this month)
+    # ==========================
+    # Total Sales and Profit
+    # ==========================
     orders_this_month = Order.objects.filter(
         business=profile.business,
         created_at__month=today.month,
         created_at__year=today.year,
         status='paid'
     )
-    total_sales = sum(order.total for order in orders_this_month)
-    total_profit = sum(
-        order.total - sum(item.price * item.quantity for item in order.items.all())
-        for order in orders_this_month
-    )
 
-    # Check subscription/trial
+    total_sales = sum(order.total for order in orders_this_month)
+
+    # Correct profit calculation: (selling_price - cost_price) * quantity
+    total_profit = 0
+    for order in orders_this_month:
+        for item in order.items.all():
+            total_profit += (item.price - item.product.cost_price) * item.quantity
+
+    # ==========================
+    # Subscription / Trial Info
+    # ==========================
     subscription_active = profile.has_active_subscription()
     trial_active = profile.is_trial_active()
     trial_days_remaining = 0
     if trial_active and profile.subscription_expiry:
         trial_days_remaining = (profile.subscription_expiry.date() - today).days
 
-    # Pass available plans (example)
+    # Example plans
     plans = [
         {"name": "Basic", "price": 5000, "code": settings.PAYSTACK_PLAN_CODE},
     ]
 
+    # ==========================
+    # Context for Template
+    # ==========================
     context = {
         "profile": profile,
         "total_products": total_products,
@@ -116,6 +129,9 @@ def dashboard(request):
     return render(request, "dashboard.html", context)
 
 
+
+
+
 def home(request):
     return render(request, 'home.html')
 
@@ -128,23 +144,42 @@ def product_list(request):
     products = Product.objects.filter(business=request.user.profile.business)
     return render(request, "product_list.html", {"products": products})
 
-
 @login_required
 def product_create(request):
+    profile = request.user.profile
+
+    # Safety check
+    if not profile.business:
+        business = Business.objects.create(name=f"{request.user.username}'s Business")
+        profile.business = business
+        profile.save()
+
     if request.method == "POST":
-        name = request.POST['name']
-        price = request.POST['price']
-        Product.objects.create(name=name, selling_price=price, cost_price=0, business=request.user.profile.business)
+        name = request.POST.get('name')
+        cost_price = request.POST.get('cost_price')
+        selling_price = request.POST.get('selling_price')
+
+        Product.objects.create(
+            name=name,
+            cost_price=cost_price,
+            selling_price=selling_price,
+            business=profile.business
+        )
+
         return redirect('product_list')
+
     return render(request, "product_create.html")
+
+
+
 
 
 @login_required
 def product_update(request, id):
     product = get_object_or_404(Product, id=id, business=request.user.profile.business)
     if request.method == "POST":
-        product.name = request.POST['name']
-        product.selling_price = request.POST['price']
+        product.cost_price = request.POST.get('cost_price')
+        product.selling_price = request.POST.get('selling_price')
         product.save()
         return redirect('product_list')
     return render(request, "product_update.html", {"product": product})
@@ -162,30 +197,88 @@ def product_delete(request, id):
 # -------------------------------
 @login_required
 def batch_list(request, product_id):
-    batches = Batch.objects.filter(product_id=product_id)
-    return render(request, "batch_list.html", {"batches": batches, "product_id": product_id})
+    product = get_object_or_404(
+        Product,
+        id=product_id,
+        business=request.user.profile.business
+    )
 
+    batches = Batch.objects.filter(
+        product=product,
+        business=request.user.profile.business
+    ).order_by('created_at')
 
+    return render(request, "batch_list.html", {
+        "product": product,
+        "batches": batches
+    })
+    
+    
 @login_required
 def batch_create(request, product_id):
+    product = get_object_or_404(
+        Product, 
+        id=product_id, 
+        business=request.user.profile.business
+    )
+
     if request.method == "POST":
-        quantity = request.POST['quantity']
-        expiry_date = request.POST['expiry_date']
-        Batch.objects.create(product_id=product_id, quantity=quantity, expiry_date=expiry_date, business=request.user.profile.business)
-        return redirect('batch_list', product_id=product_id)
-    return render(request, "batch_form.html", {"product_id": product_id})
+        batch_number = request.POST.get('batch_number')
+        quantity = request.POST.get('quantity')
+        expiry_date = request.POST.get('expiry_date')
 
+        # Validation
+        if not batch_number or not quantity:
+            messages.error(request, "Batch number and quantity are required.")
+            return redirect('batch_create', product_id=product.id)
 
+        try:
+            quantity = int(quantity)
+            if quantity <= 0:
+                raise ValueError
+        except ValueError:
+            messages.error(request, "Quantity must be a positive integer.")
+            return redirect('batch_create', product_id=product.id)
+
+        Batch.objects.create(
+            product=product,
+            batch_number=batch_number,
+            quantity=quantity,
+            expiry_date=expiry_date,
+            business=request.user.profile.business
+        )
+
+        # Update product total stock after adding batch
+        product.update_total_stock()
+
+        return redirect('batch_list', product_id=product.id)
+
+    return render(request, "batch_create.html", {
+        "product": product
+    })
+    
+    
+    
+    
 @login_required
 def batch_update(request, pk):
-    batch = get_object_or_404(Batch, pk=pk)
-    if request.method == "POST":
-        batch.quantity = request.POST['quantity']
-        batch.expiry_date = request.POST['expiry_date']
-        batch.save()
-        return redirect('batch_list', product_id=batch.product.id)
-    return render(request, "batch_form.html", {"batch": batch})
+    batch = get_object_or_404(Batch, pk=pk, business=request.user.profile.business)
 
+    if request.method == "POST":
+        batch.batch_number = request.POST.get('batch_number')
+        batch.quantity = request.POST.get('quantity')
+        batch.expiry_date = request.POST.get('expiry_date')
+        batch.save()
+
+        return redirect('batch_list', product_id=batch.product.id)
+
+    return render(request, "batch_update.html", {
+        "batch": batch
+    })
+    
+    
+    
+    
 
 @login_required
 def batch_delete(request, pk):
@@ -235,28 +328,86 @@ def customer_delete(request, id):
 # -------------------------------
 # Orders
 # -------------------------------
+
+
 @login_required
 def order_list(request):
-    orders = Order.objects.filter(business=request.user.profile.business)
-    return render(request, "order_list.html", {"orders": orders})
+    business = request.user.profile.business
 
+    orders = Order.objects.filter(business=business)\
+                          .select_related("customer")\
+                          .order_by("-created_at")
 
+    return render(request, "order_list.html", {
+        "orders": orders
+    })
+    
+    
+    
 @login_required
 def order_create(request):
+    business = request.user.profile.business
+
     if request.method == "POST":
-        customer_id = request.POST['customer']
-        total_amount = request.POST['total_amount']
-        Order.objects.create(
+        customer_id = request.POST.get('customer')
+        order = Order.objects.create(
             customer_id=customer_id,
-            total=total_amount,
-            subtotal=total_amount,
-            business=request.user.profile.business
+            business=business,
+            status="draft"
         )
+
+        products = Product.objects.filter(business=business)
+
+        for product in products:
+            qty = request.POST.get(f'quantity_{product.id}')
+            if not qty or int(qty) <= 0:
+                continue
+            qty = int(qty)
+
+            if qty > product.total_stock:
+                continue  # optionally show error
+
+            # create order item
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=qty,
+                price=product.selling_price,
+                business=business
+            )
+
+            # deduct stock from batches (FIFO)
+            qty_to_deduct = qty
+            batches = product.batches.filter(quantity__gt=0).order_by('created_at')
+
+            for batch in batches:
+                if qty_to_deduct <= 0:
+                    break
+                if batch.quantity >= qty_to_deduct:
+                    batch.quantity -= qty_to_deduct
+                    batch.save()
+                    qty_to_deduct = 0
+                else:
+                    qty_to_deduct -= batch.quantity
+                    batch.quantity = 0
+                    batch.save()
+
+        # calculate order total
+        order.calculate_total()
         return redirect('order_list')
-    customers = Customer.objects.filter(business=request.user.profile.business)
-    return render(request, "order_create.html", {"customers": customers})
 
+    customers = Customer.objects.filter(business=business)
+    products = Product.objects.filter(business=business)
 
+    return render(request, "order_create.html", {
+        "customers": customers,
+        "products": products
+    })
+    
+    
+    
+    
+    
 @login_required
 def change_order_status(request, pk):
     order = get_object_or_404(Order, pk=pk, business=request.user.profile.business)
@@ -286,13 +437,18 @@ def contact(request):
 
 # -------------------------------
 # Invoice
-# -------------------------------
 @login_required
 def invoice_view(request, order_id):
-    order = get_object_or_404(Order, pk=order_id, business=request.user.profile.business)
-    return render(request, "invoice.html", {"order": order})
+    business = request.user.profile.business
+    order = get_object_or_404(Order, pk=order_id, business=business)
+    
+    # Make sure an Invoice exists or create one
+    invoice, created = Invoice.objects.get_or_create(order=order)
 
-
+    return render(request, "invoice.html", {
+        "invoice": invoice
+    })
+    
 # -------------------------------
 # Blog
 # -------------------------------

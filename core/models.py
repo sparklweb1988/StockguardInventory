@@ -40,7 +40,6 @@ class DemoVideo(models.Model):
     video_file = models.FileField(upload_to='videos/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
-    
 # ==========================
 # PRODUCT
 # ==========================
@@ -50,32 +49,30 @@ class Product(models.Model):
     cost_price = models.DecimalField(max_digits=10, decimal_places=2)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+
     def __str__(self):
         return self.name
 
     # Calculate the total stock by summing up the quantity of all batches
     @property
     def total_stock(self):
-        total = sum(batch.quantity for batch in self.batches.all())
-        return total
+        return sum(batch.quantity for batch in self.batches.all())
 
     # Check if the product has low stock (less than 10 items)
     @property
     def low_stock_warning(self):
-        """Returns True if stock is low."""
-        if self.total_stock < 10:  # You can adjust this threshold as needed
-            return True
-        return False
+        return self.total_stock < 10
 
     # Check if any of the batches for this product have expired
     @property
     def expired_stock_warning(self):
-        """Returns True if any batch is expired."""
-        return any(batch.is_expired() for batch in self.batches.all())
-
-
-
-
+        # Only return True if any batch's is_expired property says "Expired"
+        return any(batch.is_expired == "Expired" for batch in self.batches.all())
+    
+    
+    
+    
+    
 # ==========================
 # BATCH
 # ==========================
@@ -86,10 +83,13 @@ class Batch(models.Model):
     quantity = models.PositiveIntegerField()
     expiry_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+
     class Meta:
         ordering = ['expiry_date']
 
+    @property
     def is_expired(self):
+        """Returns a string indicating expiry status."""
         today = date.today()
         days_left = (self.expiry_date - today).days
 
@@ -102,7 +102,6 @@ class Batch(models.Model):
         elif days_left <= 90:
             return "Expires in 3 months"
         return "Safe"
-
 
 
 
