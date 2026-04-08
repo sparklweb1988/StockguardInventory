@@ -595,17 +595,13 @@ def subscribe(request):
 
 @login_required
 def verify(request):
-    """
-    Verify the first payment and create a monthly recurring subscription
-    """
     reference = request.GET.get("reference")
     if not reference:
         return HttpResponse("No reference provided", status=400)
 
+    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
     secret_key = settings.PAYSTACK_SECRET_KEY
-    headers = {"Authorization": f"Bearer {secret_key}"}
     response = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
-
     if response.status_code != 200:
         return HttpResponse("Error verifying payment", status=400)
 
@@ -613,24 +609,36 @@ def verify(request):
     if res_data["data"]["status"] != "success":
         return HttpResponse("Payment failed")
 
-    # Payment successful → save user as paid
     profile = request.user.profile
-    profile.is_paid = True
-    profile.subscription_expiry = None  # Optional: track actual expiry if needed
-    profile.save()
-
-    # Step 3: Create recurring subscription on Paystack
     customer_code = res_data["data"]["customer"]["customer_code"]
     plan_code = settings.PAYSTACK_PLAN_CODE
+
+    # Check if subscription already exists
+    check_url = f"https://api.paystack.co/subscription?customer={customer_code}"
+    check_res = requests.get(check_url, headers=headers)
+    sub_data = check_res.json()
+
+    if sub_data.get("status") and sub_data.get("data"):
+        # Subscription already exists
+        profile.is_paid = True
+        profile.subscription_expiry = None  # Or set according to your plan
+        profile.save()
+        return HttpResponse("Payment successful! Subscription already active.")
+
+    # Create subscription if none exists
     sub_url = "https://api.paystack.co/subscription"
-    sub_data = {"customer": customer_code, "plan": plan_code}
-    sub_res = requests.post(sub_url, json=sub_data, headers=headers)
+    sub_payload = {"customer": customer_code, "plan": plan_code}
+    sub_res = requests.post(sub_url, json=sub_payload, headers=headers)
     sub_json = sub_res.json()
 
     if sub_json.get("status"):
-        return HttpResponse("Payment successful! You are now on Premium plan. Subscription set for monthly recurring payment.")
+        profile.is_paid = True
+        profile.subscription_expiry = None
+        profile.save()
+        return HttpResponse("Payment successful! You are now on Premium plan with monthly subscription.")
     else:
-        return HttpResponse("Payment successful but subscription creation failed: " + sub_json.get("message", "Unknown error"))
+        return HttpResponse("Payment successful but subscription creation failed: " +
+                            sub_json.get("message", "Unknown error"))
 
 
 # Paystack webhook (optional)
