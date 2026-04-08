@@ -74,59 +74,60 @@
     </div>
 
     <!-- Subscription -->
-    <div class="card shadow">
-        <div class="card-body">
-            <h5>Subscription</h5>
+<div class="card shadow">
+    <div class="card-body">
+        <h5>Subscription</h5>
 
-            <p>
-                <strong>Current Plan:</strong>
-                {% if profile.is_paid %}
-                    <span class="text-success">Premium</span>
-                {% else %}
-                    <span class="text-secondary">Free</span>
-                {% endif %}
-            </p>
-
-            {% if trial_active %}
-                <p><strong>Trial:</strong> {{ trial_days_remaining }} days remaining</p>
-            {% endif %}
-
-            <p>
-                <strong>Status:</strong>
-                {% if subscription_active %}
-                    <span class="text-success">Active</span>
-                {% else %}
-                    <span class="text-danger">Inactive</span>
-                {% endif %}
-            </p>
-
-            <p>
-                <strong>Valid Until:</strong>
-                {% if profile.subscription_expiry %}
-                    {{ profile.subscription_expiry|date:"D, d M Y" }}
-                {% else %}
-                    -
-                {% endif %}
-            </p>
-
-            <!-- UPGRADE BUTTON -->
-            {% if not profile.is_paid %}
-                <small class="text-muted d-block mb-1">
-                    {% if trial_active %}
-                        You are currently on a free trial ({{ trial_days_remaining }} days remaining).
-                    {% else %}
-                        You are on the free plan. Upgrade anytime to remove product limits.
-                    {% endif %}
-                </small>
-
-                <a href="{% url 'subscribe' %}" class="btn btn-primary">
-                    Upgrade to Premium (₦5,000/month)
-                </a>
+        <p>
+            <strong>Current Plan:</strong>
+            {% if profile.is_paid %}
+                <span class="text-success">Premium</span>
             {% else %}
-                <small class="text-success">You are already on the Premium plan!</small>
+                <span class="text-secondary">Free</span>
             {% endif %}
-        </div>
-    </div>
+        </p>
 
+        {% if trial_active %}
+            <p><strong>Trial:</strong> {{ trial_days_remaining }} days remaining</p>
+        {% endif %}
+
+        <p>
+            <strong>Status:</strong>
+            {% if subscription_active %}
+                <span class="text-success">Active</span>
+            {% else %}
+                <span class="text-danger">Inactive</span>
+            {% endif %}
+        </p>
+
+        <p>
+            <strong>Valid Until:</strong>
+            {% if profile.subscription_expiry %}
+                {{ profile.subscription_expiry|date:"D, d M Y" }}
+            {% elif profile.is_paid %}
+                Ongoing
+            {% else %}
+                -
+            {% endif %}
+        </p>
+
+        <!-- UPGRADE BUTTON -->
+        {% if not profile.is_paid %}
+            <small class="text-muted d-block mb-1">
+                {% if trial_active %}
+                    You are currently on a free trial ({{ trial_days_remaining }} days remaining).
+                {% else %}
+                    You are on the free plan. Upgrade anytime to remove product limits.
+                {% endif %}
+            </small>
+
+            <a href="{% url 'subscribe' %}" class="btn btn-primary">
+                Upgrade to Premium (₦5,000/month)
+            </a>
+        {% else %}
+            <small class="text-success">You are already on the Premium plan!</small>
+        {% endif %}
+    </div>
+</div>
 </div>
 {% endblock %}
