@@ -44,7 +44,7 @@ def signup(request):
             return redirect('signup')
 
         # -----------------------------
-        # Create user (triggers signals)
+        # Create user
         # -----------------------------
         user = User.objects.create_user(
             username=username,
@@ -53,24 +53,13 @@ def signup(request):
         )
 
         # -----------------------------
-        # Safely get profile (fallback if signal didn't run yet)
+        # Create business and profile
         # -----------------------------
-        try:
-            profile = user.profile
-        except Profile.DoesNotExist:
-            # Signal didn't fire, create profile and business manually
-            business = Business.objects.create(name=f"{username}'s Business")
-            profile = Profile.objects.create(
-                user=user,
-                business=business
-            )
-
-        # -----------------------------
-        # Update business name from form
-        # -----------------------------
-        if profile.business:
-            profile.business.name = business_name
-            profile.business.save()
+        business = Business.objects.create(name=business_name)  # Use user input only
+        profile = Profile.objects.create(
+            user=user,
+            business=business
+        )
 
         messages.success(request, "Account created successfully! You can now login.")
         return redirect('login')
