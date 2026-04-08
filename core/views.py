@@ -604,3 +604,36 @@ def paystack_webhook(request):
         print("Paystack webhook received:", request.body)
         return HttpResponse(status=200)
     return HttpResponse(status=400)
+
+
+
+
+
+
+@login_required
+def upgrade_to_premium(request):
+    profile = request.user.profile
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    amount = 5000 * 100  # in Kobo
+
+    if profile.is_paid:
+        return HttpResponse("You are already on Premium!")
+
+    # Initialize transaction
+    url = "https://api.paystack.co/transaction/initialize"
+    headers = {"Authorization": f"Bearer {secret_key}"}
+    data = {
+        "email": request.user.email,
+        "amount": amount,
+        "callback_url": request.build_absolute_uri("/verify-payment/")  # after payment
+    }
+    res = requests.post(url, json=data, headers=headers)
+    res_json = res.json()
+
+    if res_json.get("status"):
+        auth_url = res_json["data"].get("authorization_url")
+        if auth_url:
+            return redirect(auth_url)
+        return HttpResponse("Payment initialized but no authorization URL returned.")
+    else:
+        return HttpResponse("Payment initialization failed: " + res_json.get("message", "Unknown error"))
