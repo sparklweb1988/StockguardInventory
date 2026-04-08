@@ -41,7 +41,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('home')
 
 
 # -------------------------------
@@ -454,24 +454,31 @@ def invoice_view(request, order_id):
 # -------------------------------
 def blog_view(request):
     posts = Blog.objects.all()
-    return render(request, "blog/blog_list.html", {"posts": posts})
+    return render(request, "blog.html", {"posts": posts})
 
 
 def blog_detail(request, slug):
     post = get_object_or_404(Blog, slug=slug)
-    return render(request, "blog/blog_detail.html", {"post": post})
+    return render(request, "blog_detail.html", {"post": post})
 
 
 # -------------------------------
 # Paystack Subscription
 # -------------------------------
+
+
 @login_required
 def subscribe(request):
+    profile = request.user.profile
     email = request.user.email
     secret_key = settings.PAYSTACK_SECRET_KEY
     plan_code = settings.PAYSTACK_PLAN_CODE
 
-    # Check if customer exists on Paystack
+    # If user is already paid, prevent re-subscription
+    if profile.is_paid:
+        return HttpResponse("You already have an active Premium subscription.")
+
+    # Create or get Paystack customer
     url = f"https://api.paystack.co/customer?email={email}"
     res = requests.get(url, headers={"Authorization": f"Bearer {secret_key}"})
     res_json = res.json()
@@ -489,20 +496,27 @@ def subscribe(request):
         else:
             return HttpResponse("Failed to create Paystack customer: " + create_json.get("message", "Unknown error"))
 
-    # Create subscription
+    # Create subscription on Paystack
     sub_url = "https://api.paystack.co/subscription"
     sub_data = {"customer": customer_code, "plan": plan_code}
+
+    # Check if user has active subscription on Paystack
+    # This prevents the "subscription already in place" error
     sub_res = requests.post(sub_url, json=sub_data, headers={"Authorization": f"Bearer {secret_key}"})
     sub_json = sub_res.json()
 
     if sub_json.get("status"):
         auth_url = sub_json["data"].get("authorization_url")
         if auth_url:
+            # Redirect user to Paystack payment page immediately
             return redirect(auth_url)
         return HttpResponse("Subscription created successfully! You may need to verify manually.")
     else:
+        # Handle error, e.g., subscription already exists
+        if "already in place" in sub_json.get("message", "").lower():
+            # Optional: redirect to Paystack dashboard or payment link if possible
+            return HttpResponse("You already have a Paystack subscription. If you want to upgrade, cancel it first.")
         return HttpResponse("Payment initialization failed: " + sub_json.get("message", "Unknown error"))
-    
     
     
     

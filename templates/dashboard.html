@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container-fluid py-4">
 
-    <h2 class="mb-4">Welcome: {{ profile.business.name }}</h2>
+    <h2 class="mb-4">Welcome: {{ user.profile.business.name }}</h2>
 
     <!-- Flash messages -->
     {% if messages %}
@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Sales -->
+    <!-- Sales & Profit -->
     <div class="row g-3 mb-4 text-center">
         <div class="col-md-6">
             <div class="card shadow bg-dark text-white">
@@ -111,18 +111,17 @@
 
             <!-- UPGRADE BUTTON -->
             {% if not profile.is_paid %}
+                {% if trial_active %}
+                    <small class="text-muted d-block mb-1">
+                        You are currently on a free trial ({{ trial_days_remaining }} days remaining).
+                    </small>
+                {% endif %}
                 <a href="{% url 'subscribe' %}" class="btn btn-primary">
                     Upgrade to Premium (₦5,000)
                 </a>
-                {% if trial_active %}
-                    <small class="text-muted d-block mt-1">
-                        You are currently on a free trial, but can upgrade anytime.
-                    </small>
-                {% endif %}
             {% else %}
-                <small class="text-muted">Your plan is active</small>
+                <small class="text-success">You are already on the Premium plan!</small>
             {% endif %}
-
         </div>
     </div>
 
