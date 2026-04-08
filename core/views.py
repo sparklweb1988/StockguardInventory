@@ -598,7 +598,7 @@ def subscribe(request):
             return redirect(auth_url)
         return HttpResponse("Subscription created! You may need to verify manually.")
     else:
-        return HttpResponse("Payment initialization failed: " + sub_json.get("message", "Unknown 
+        return HttpResponse("Payment initialization failed: " + sub_json.get("message", "Unknown error")) 
 
                                                                              
 import json
