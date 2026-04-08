@@ -50,7 +50,7 @@ urlpatterns = [
     
     # Paystack subscription
     path('subscribe/', views.subscribe, name='subscribe'),
-   # path('verify/', views.verify, name='verify'),
+    path('verify/', views.verify, name='verify'),
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
 
 ]
