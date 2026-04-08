@@ -111,13 +111,16 @@
 
             <!-- UPGRADE BUTTON -->
             {% if not profile.is_paid %}
-                {% if trial_active %}
-                    <small class="text-muted d-block mb-1">
+                <small class="text-muted d-block mb-1">
+                    {% if trial_active %}
                         You are currently on a free trial ({{ trial_days_remaining }} days remaining).
-                    </small>
-                {% endif %}
+                    {% else %}
+                        You are on the free plan. Upgrade anytime to remove product limits.
+                    {% endif %}
+                </small>
+
                 <a href="{% url 'subscribe' %}" class="btn btn-primary">
-                    Upgrade to Premium (₦5,000)
+                    Upgrade to Premium (₦5,000/month)
                 </a>
             {% else %}
                 <small class="text-success">You are already on the Premium plan!</small>
