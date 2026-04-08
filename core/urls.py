@@ -52,6 +52,9 @@ urlpatterns = [
     path('subscribe/', views.subscribe, name='subscribe'),
     path('verify/', views.verify, name='verify'),
     path('paystack/webhook/', views.paystack_webhook, name='paystack_webhook'),
+
+    path('upgrade/', views.upgrade_to_premium, name='upgrade'),
+    path('verify-payment/', views.verify_payment, name='verify_payment'),
 ]
 
 if settings.DEBUG:
