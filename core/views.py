@@ -15,16 +15,48 @@ from django.views.decorators.csrf import csrf_exempt
 # -------------------------------
 # Authentication
 # -------------------------------
+
+
 def signup(request):
     if request.method == "POST":
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        messages.success(request, "Account created successfully!")
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        business_name = request.POST.get('business_name')
+
+        # ✅ Validate fields
+        if not username or not email or not password or not business_name:
+            messages.error(request, "All fields are required.")
+            return redirect('signup')
+
+        # ✅ Check duplicates
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect('signup')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect('signup')
+
+        # ✅ Create user (this triggers signals)
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        # ✅ Update business name (created by signal)
+        business = user.profile.business
+        business.name = business_name
+        business.save()
+
+        messages.success(request, "Account created successfully! You can now login.")
         return redirect('login')
+
     return render(request, "signup.html")
+
+
+
 
 
 def login_view(request):
