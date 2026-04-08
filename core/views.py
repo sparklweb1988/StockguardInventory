@@ -593,52 +593,57 @@ def subscribe(request):
         return HttpResponse("Payment initialization failed: " + init_json.get("message", "Unknown error"))
 
 
+from django.contrib import messages
+
 @login_required
 def verify(request):
     reference = request.GET.get("reference")
     if not reference:
-        return HttpResponse("No reference provided", status=400)
+        messages.error(request, "No payment reference provided.")
+        return redirect("dashboard")
 
-    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
     secret_key = settings.PAYSTACK_SECRET_KEY
+    headers = {"Authorization": f"Bearer {secret_key}"}
     response = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+
     if response.status_code != 200:
-        return HttpResponse("Error verifying payment", status=400)
+        messages.error(request, "Error verifying payment.")
+        return redirect("dashboard")
 
     res_data = response.json()
     if res_data["data"]["status"] != "success":
-        return HttpResponse("Payment failed")
+        messages.error(request, "Payment failed.")
+        return redirect("dashboard")
 
     profile = request.user.profile
     customer_code = res_data["data"]["customer"]["customer_code"]
     plan_code = settings.PAYSTACK_PLAN_CODE
 
-    # Check if subscription already exists
-    check_url = f"https://api.paystack.co/subscription?customer={customer_code}"
-    check_res = requests.get(check_url, headers=headers)
-    sub_data = check_res.json()
-
-    if sub_data.get("status") and sub_data.get("data"):
-        # Subscription already exists
-        profile.is_paid = True
-        profile.subscription_expiry = None  # Or set according to your plan
-        profile.save()
-        return HttpResponse("Payment successful! Subscription already active.")
-
-    # Create subscription if none exists
+    # Try creating recurring subscription
     sub_url = "https://api.paystack.co/subscription"
-    sub_payload = {"customer": customer_code, "plan": plan_code}
-    sub_res = requests.post(sub_url, json=sub_payload, headers=headers)
+    sub_data = {"customer": customer_code, "plan": plan_code}
+    sub_res = requests.post(sub_url, json=sub_data, headers=headers)
     sub_json = sub_res.json()
 
-    if sub_json.get("status"):
+    # Mark user as paid regardless if subscription already exists
+    if sub_json.get("status") or "already in place" in sub_json.get("message", "").lower():
         profile.is_paid = True
         profile.subscription_expiry = None
         profile.save()
-        return HttpResponse("Payment successful! You are now on Premium plan with monthly subscription.")
-    else:
-        return HttpResponse("Payment successful but subscription creation failed: " +
-                            sub_json.get("message", "Unknown error"))
+
+        messages.success(request, "Payment successful! You are now on Premium plan.")
+        return redirect("dashboard")
+
+    # If subscription creation fails for other reasons
+    messages.warning(request, "Payment successful but subscription creation failed: " +
+                     sub_json.get("message", "Unknown error"))
+    profile.is_paid = True
+    profile.subscription_expiry = None
+    profile.save()
+    return redirect("dashboard")
+
+
+
 
 
 # Paystack webhook (optional)
