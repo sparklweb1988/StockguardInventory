@@ -545,17 +545,18 @@ def blog_detail(request, slug):
 @login_required
 def subscribe(request):
     """
-    Start a monthly recurring subscription for free/trial users.
+    Upgrade free/trial users to Premium (monthly recurring payment)
     """
     profile = request.user.profile
     email = request.user.email
     secret_key = settings.PAYSTACK_SECRET_KEY
     plan_code = settings.PAYSTACK_PLAN_CODE
 
+    # Prevent re-subscription if already paid
     if profile.is_paid:
-        return HttpResponse("You are already on Premium!")
+        return HttpResponse("You are already on Premium plan.")
 
-    # 1️⃣ Check if customer exists on Paystack
+    # Step 1: Create or get Paystack customer
     url = f"https://api.paystack.co/customer?email={email}"
     res = requests.get(url, headers={"Authorization": f"Bearer {secret_key}"})
     res_json = res.json()
@@ -563,7 +564,7 @@ def subscribe(request):
     if res_json.get("status") and res_json["data"]:
         customer_code = res_json["data"][0]["customer_code"]
     else:
-        # 2️⃣ Create customer if not exists
+        # Create customer if not exists
         create_url = "https://api.paystack.co/customer"
         payload = {"email": email, "first_name": request.user.username}
         create_res = requests.post(create_url, json=payload, headers={"Authorization": f"Bearer {secret_key}"})
@@ -573,61 +574,72 @@ def subscribe(request):
         else:
             return HttpResponse("Failed to create Paystack customer: " + create_json.get("message", "Unknown error"))
 
-    # 3️⃣ Check if subscription already exists
-    sub_check_url = f"https://api.paystack.co/subscription?customer={customer_code}"
-    sub_check_res = requests.get(sub_check_url, headers={"Authorization": f"Bearer {secret_key}"})
-    sub_check_json = sub_check_res.json()
+    # Step 2: Initialize first payment to collect card (₦5,000)
+    initialize_url = "https://api.paystack.co/transaction/initialize"
+    payload = {
+        "email": email,
+        "amount": 500000,  # Paystack expects kobo; ₦5,000 = 500000 kobo
+        "callback_url": request.build_absolute_uri("/verify/"),
+        "metadata": {"subscription": "premium"}
+    }
+    init_res = requests.post(initialize_url, json=payload, headers={"Authorization": f"Bearer {secret_key}"})
+    init_json = init_res.json()
 
-    if sub_check_json.get("status") and sub_check_json.get("data"):
-        # Customer has active subscription
-        sub = sub_check_json["data"][0]
-        auth_url = sub.get("authorization_url") or "https://dashboard.paystack.com/#/subscriptions"
-        return HttpResponse(
-            f"You already have an active subscription. Manage it here: <a href='{auth_url}' target='_blank'>Paystack</a>"
-        )
+    if init_json.get("status"):
+        # Redirect user to Paystack payment page
+        auth_url = init_json["data"].get("authorization_url")
+        return redirect(auth_url)
+    else:
+        return HttpResponse("Payment initialization failed: " + init_json.get("message", "Unknown error"))
 
-    # 4️⃣ Create subscription
+
+@login_required
+def verify(request):
+    """
+    Verify the first payment and create a monthly recurring subscription
+    """
+    reference = request.GET.get("reference")
+    if not reference:
+        return HttpResponse("No reference provided", status=400)
+
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    headers = {"Authorization": f"Bearer {secret_key}"}
+    response = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+
+    if response.status_code != 200:
+        return HttpResponse("Error verifying payment", status=400)
+
+    res_data = response.json()
+    if res_data["data"]["status"] != "success":
+        return HttpResponse("Payment failed")
+
+    # Payment successful → save user as paid
+    profile = request.user.profile
+    profile.is_paid = True
+    profile.subscription_expiry = None  # Optional: track actual expiry if needed
+    profile.save()
+
+    # Step 3: Create recurring subscription on Paystack
+    customer_code = res_data["data"]["customer"]["customer_code"]
+    plan_code = settings.PAYSTACK_PLAN_CODE
     sub_url = "https://api.paystack.co/subscription"
     sub_data = {"customer": customer_code, "plan": plan_code}
-    sub_res = requests.post(sub_url, json=sub_data, headers={"Authorization": f"Bearer {secret_key}"})
+    sub_res = requests.post(sub_url, json=sub_data, headers=headers)
     sub_json = sub_res.json()
 
     if sub_json.get("status"):
-        auth_url = sub_json["data"].get("authorization_url")
-        if auth_url:
-            return redirect(auth_url)
-        return HttpResponse("Subscription created! You may need to verify manually.")
+        return HttpResponse("Payment successful! You are now on Premium plan. Subscription set for monthly recurring payment.")
     else:
-        return HttpResponse("Payment initialization failed: " + sub_json.get("message", "Unknown error")) 
+        return HttpResponse("Payment successful but subscription creation failed: " + sub_json.get("message", "Unknown error"))
 
-                                                                             
-import json
 
+# Paystack webhook (optional)
 @csrf_exempt
 def paystack_webhook(request):
-    """
-    Paystack will notify us for recurring charges or subscription updates.
-    """
     if request.method == "POST":
-        event = json.loads(request.body)
-
-        # Successful subscription charge
-        if event["event"] == "subscription.create":
-            print("Subscription created:", event)
-        elif event["event"] == "charge.success":
-            email = event["data"]["customer"]["email"]
-            try:
-                profile = Profile.objects.get(user__email=email)
-                profile.is_paid = True
-                profile.save()
-            except Profile.DoesNotExist:
-                pass
-
+        print("Paystack webhook received:", request.body)
         return HttpResponse(status=200)
     return HttpResponse(status=400)
-
-
-
 
 
 
