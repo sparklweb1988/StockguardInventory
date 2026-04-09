@@ -288,7 +288,7 @@ def batch_create(request, product_id):
         )
 
         # Update product total stock after adding batch
-        product.update_total_stock()
+        
 
         return redirect('batch_list', product_id=product.id)
 
