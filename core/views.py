@@ -15,17 +15,56 @@ from django.views.decorators.csrf import csrf_exempt
 # -------------------------------
 # Authentication
 # -------------------------------
+
+
+
 def signup(request):
     if request.method == "POST":
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        messages.success(request, "Account created successfully!")
-        return redirect('login')
-    return render(request, "signup.html")
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        business_name = request.POST.get('business_name')
 
+        # -----------------------------
+        # Validate required fields
+        # -----------------------------
+        if not username or not email or not password or not business_name:
+            messages.error(request, "All fields are required.")
+            return redirect('signup')
+
+        # -----------------------------
+        # Check for duplicates
+        # -----------------------------
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect('signup')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect('signup')
+
+        # -----------------------------
+        # Create user
+        # -----------------------------
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        # -----------------------------
+        # Create business and profile
+        # -----------------------------
+        business = Business.objects.create(name=business_name)  # Use user input only
+        profile = Profile.objects.create(
+            user=user,
+            business=business
+        )
+
+        messages.success(request, "Account created successfully! You can now login.")
+        return redirect('login')
+
+    return render(request, "signup.html")
 
 def login_view(request):
     if request.method == "POST":
@@ -249,7 +288,7 @@ def batch_create(request, product_id):
         )
 
         # Update product total stock after adding batch
-        product.update_total_stock()
+        
 
         return redirect('batch_list', product_id=product.id)
 
@@ -467,18 +506,46 @@ def blog_detail(request, slug):
 # -------------------------------
 
 
+# -------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @login_required
 def subscribe(request):
+    """
+    Upgrade free/trial users to Premium (monthly recurring payment)
+    """
     profile = request.user.profile
     email = request.user.email
     secret_key = settings.PAYSTACK_SECRET_KEY
     plan_code = settings.PAYSTACK_PLAN_CODE
 
-    # If user is already paid, prevent re-subscription
+    # Prevent re-subscription if already paid
     if profile.is_paid:
-        return HttpResponse("You already have an active Premium subscription.")
+        return HttpResponse("You are already on Premium plan.")
 
-    # Create or get Paystack customer
+    # Step 1: Create or get Paystack customer
     url = f"https://api.paystack.co/customer?email={email}"
     res = requests.get(url, headers={"Authorization": f"Bearer {secret_key}"})
     res_json = res.json()
@@ -496,61 +563,85 @@ def subscribe(request):
         else:
             return HttpResponse("Failed to create Paystack customer: " + create_json.get("message", "Unknown error"))
 
-    # Create subscription on Paystack
-    sub_url = "https://api.paystack.co/subscription"
-    sub_data = {"customer": customer_code, "plan": plan_code}
+    # Step 2: Initialize first payment to collect card (₦5,000)
+    initialize_url = "https://api.paystack.co/transaction/initialize"
+    payload = {
+        "email": email,
+        "amount": 500000,  # Paystack expects kobo; ₦5,000 = 500000 kobo
+        "callback_url": request.build_absolute_uri("/verify/"),
+        "metadata": {"subscription": "premium"}
+    }
+    init_res = requests.post(initialize_url, json=payload, headers={"Authorization": f"Bearer {secret_key}"})
+    init_json = init_res.json()
 
-    # Check if user has active subscription on Paystack
-    # This prevents the "subscription already in place" error
-    sub_res = requests.post(sub_url, json=sub_data, headers={"Authorization": f"Bearer {secret_key}"})
-    sub_json = sub_res.json()
-
-    if sub_json.get("status"):
-        auth_url = sub_json["data"].get("authorization_url")
-        if auth_url:
-            # Redirect user to Paystack payment page immediately
-            return redirect(auth_url)
-        return HttpResponse("Subscription created successfully! You may need to verify manually.")
+    if init_json.get("status"):
+        # Redirect user to Paystack payment page
+        auth_url = init_json["data"].get("authorization_url")
+        return redirect(auth_url)
     else:
-        # Handle error, e.g., subscription already exists
-        if "already in place" in sub_json.get("message", "").lower():
-            # Optional: redirect to Paystack dashboard or payment link if possible
-            return HttpResponse("You already have a Paystack subscription. If you want to upgrade, cancel it first.")
-        return HttpResponse("Payment initialization failed: " + sub_json.get("message", "Unknown error"))
-    
-    
-    
+        return HttpResponse("Payment initialization failed: " + init_json.get("message", "Unknown error"))
+
+
+from django.contrib import messages
+
 @login_required
 def verify(request):
     reference = request.GET.get("reference")
     if not reference:
-        return HttpResponse("No reference provided", status=400)
+        messages.error(request, "No payment reference provided.")
+        return redirect("dashboard")
 
-    headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    headers = {"Authorization": f"Bearer {secret_key}"}
     response = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
 
-    if response.status_code == 200:
-        res_data = response.json()
-        if res_data["data"]["status"] == "success":
-            profile = request.user.profile
-            profile.is_paid = True
-            profile.subscription_expiry = None  # Optional: set actual subscription expiry if you track
-            profile.save()
-            return HttpResponse("Payment successful. You are now on Premium plan.")
-        else:
-            return HttpResponse("Payment failed")
-    return HttpResponse("Error verifying payment", status=400)
+    if response.status_code != 200:
+        messages.error(request, "Error verifying payment.")
+        return redirect("dashboard")
+
+    res_data = response.json()
+    if res_data["data"]["status"] != "success":
+        messages.error(request, "Payment failed.")
+        return redirect("dashboard")
+
+    profile = request.user.profile
+    customer_code = res_data["data"]["customer"]["customer_code"]
+    plan_code = settings.PAYSTACK_PLAN_CODE
+
+    # Try creating recurring subscription
+    sub_url = "https://api.paystack.co/subscription"
+    sub_data = {"customer": customer_code, "plan": plan_code}
+    sub_res = requests.post(sub_url, json=sub_data, headers=headers)
+    sub_json = sub_res.json()
+
+    # Mark user as paid regardless if subscription already exists
+    if sub_json.get("status") or "already in place" in sub_json.get("message", "").lower():
+        profile.is_paid = True
+        profile.subscription_expiry = None
+        profile.save()
+
+        messages.success(request, "Payment successful! You are now on Premium plan.")
+        return redirect("dashboard")
+
+    # If subscription creation fails for other reasons
+    messages.warning(request, "Payment successful but subscription creation failed: " +
+                     sub_json.get("message", "Unknown error"))
+    profile.is_paid = True
+    profile.subscription_expiry = None
+    profile.save()
+    return redirect("dashboard")
 
 
 
 
 
-# -------------------------------
-# Paystack webhook
-# -------------------------------
+# Paystack webhook (optional)
 @csrf_exempt
 def paystack_webhook(request):
     if request.method == "POST":
         print("Paystack webhook received:", request.body)
         return HttpResponse(status=200)
     return HttpResponse(status=400)
+
+
+
