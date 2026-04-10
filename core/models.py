@@ -37,9 +37,11 @@ class Blog(models.Model):
 
 
 class DemoVideo(models.Model):
-    video_file = models.FileField(upload_to='videos/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+    video_file = models.FileField(upload_to="demo_videos/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Demo Video {self.id}"
 # ==========================
 # PRODUCT
 # ==========================

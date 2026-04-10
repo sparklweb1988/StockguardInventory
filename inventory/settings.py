@@ -131,7 +131,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Directory where Django will collect static files for production
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -159,3 +159,9 @@ PAYSTACK_PLAN_CODE = "PLN_wcrzai3si0ye2tf"
 # ---------------------------------------------------
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'login'

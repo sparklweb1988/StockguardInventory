@@ -1,7 +1,7 @@
 from datetime import timezone
 
 from django.contrib import admin
-from .models import Profile, Business, Product, Batch, Customer, Order, OrderItem, Invoice, Blog
+from .models import Profile, Business, Product, Batch, Customer, Order, OrderItem, Invoice, Blog,DemoVideo
 
 
 admin.site.register(Product)
@@ -49,3 +49,10 @@ class ProfileAdmin(admin.ModelAdmin):
         return False
     has_active_subscription.boolean = True
     has_active_subscription.short_description = 'Active Subscription'
+    
+    
+    
+    
+
+
+admin.site.register(DemoVideo)

@@ -3,15 +3,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Product, Batch, Customer, Order, Business, Profile, Blog,OrderItem,Invoice
+from .models import DemoVideo, Product, Batch, Customer, Order, Business, Profile, Blog,OrderItem,Invoice
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta, datetime
 import requests
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-
-
+from django.db.models import Sum
+from urllib.parse import urlparse, parse_qs
 # -------------------------------
 # Authentication
 # -------------------------------
@@ -89,6 +89,7 @@ def logout_view(request):
 
 
 
+@login_required
 def dashboard(request):
     profile = request.user.profile
     today = timezone.now().date()
@@ -116,6 +117,18 @@ def dashboard(request):
         batches__expiry_date__lt=today
     ).distinct().count()
 
+ 
+    # ✅ Low stock products (using batches)
+    low_stock_products = Product.objects.filter(
+        business=profile.business
+    ).annotate(
+        total_stock=Sum('batches__quantity')
+    ).filter(
+        total_stock__lt=10  # your threshold
+    )
+
+    total_low_products = low_stock_products.count()
+
     # ==========================
     # Total Sales and Profit
     # ==========================
@@ -128,7 +141,7 @@ def dashboard(request):
 
     total_sales = sum(order.total for order in orders_this_month)
 
-    # Correct profit calculation: (selling_price - cost_price) * quantity
+    # Correct profit calculation
     total_profit = 0
     for order in orders_this_month:
         for item in order.items.all():
@@ -140,6 +153,7 @@ def dashboard(request):
     subscription_active = profile.has_active_subscription()
     trial_active = profile.is_trial_active()
     trial_days_remaining = 0
+
     if trial_active and profile.subscription_expiry:
         trial_days_remaining = (profile.subscription_expiry.date() - today).days
 
@@ -149,7 +163,7 @@ def dashboard(request):
     ]
 
     # ==========================
-    # Context for Template
+    # Context
     # ==========================
     context = {
         "profile": profile,
@@ -157,6 +171,7 @@ def dashboard(request):
         "total_customers": total_customers,
         "total_orders": total_orders,
         "total_expired_products": total_expired_products,
+        "total_low_products": total_low_products,  # ✅ NEW
         "total_sales": total_sales,
         "total_profit": total_profit,
         "subscription_active": subscription_active,
@@ -171,10 +186,26 @@ def dashboard(request):
 
 
 
+
 def home(request):
-    return render(request, 'home.html')
+    video = DemoVideo.objects.last()
 
+    if request.method == "POST" and request.user.is_staff:
+        file = request.FILES.get("video")
 
+        if file:
+            DemoVideo.objects.create(video_file=file)
+            return redirect("homepage")
+
+    # 👇 ADD THIS
+    blogs = Blog.objects.all().order_by('-created_at')[:3]
+
+    return render(request, "home.html", {
+        "video": video,
+        "blogs": blogs,   # ✅ THIS FIXES YOUR ISSUE
+    })
+    
+    
 # -------------------------------
 # Products
 # -------------------------------
@@ -182,6 +213,12 @@ def home(request):
 def product_list(request):
     products = Product.objects.filter(business=request.user.profile.business)
     return render(request, "product_list.html", {"products": products})
+
+
+
+
+
+
 
 @login_required
 def product_create(request):
@@ -492,13 +529,42 @@ def invoice_view(request, order_id):
 # Blog
 # -------------------------------
 def blog_view(request):
-    posts = Blog.objects.all()
-    return render(request, "blog.html", {"posts": posts})
+    posts = Blog.objects.all().order_by('-created_at')
+    return render(request, "blog.html", {"blogs": posts})
 
 
 def blog_detail(request, slug):
     post = get_object_or_404(Blog, slug=slug)
     return render(request, "blog_detail.html", {"post": post})
+
+
+
+
+
+
+def get_youtube_embed(url):
+    import re
+    from urllib.parse import urlparse, parse_qs
+
+    if not url:
+        return None
+
+    video_id = None
+
+    if "youtu.be" in url:
+        video_id = url.split("/")[-1].split("?")[0]
+
+    elif "watch?v=" in url:
+        parsed = urlparse(url)
+        video_id = parse_qs(parsed.query).get("v", [None])[0]
+
+    if not video_id:
+        return None
+
+    return f"https://www.youtube.com/embed/{video_id}"
+
+
+
 
 
 # -------------------------------
