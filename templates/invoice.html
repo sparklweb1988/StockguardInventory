@@ -32,8 +32,8 @@
                     <tr>
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>{{ item.price }}</td>
-                        <td>{{ item.total_price }}</td>
+                        <td>&#8358; {{ item.price }}</td>
+                        <td>&#8358; {{ item.total_price }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -42,11 +42,11 @@
                     {% endfor %}
                     <tr>
                         <td colspan="3" class="text-end"><strong>Subtotal</strong></td>
-                        <td>{{ invoice.order.subtotal }}</td>
+                        <td>&#8358; {{ invoice.order.subtotal }}</td>
                     </tr>
                     <tr>
                         <td colspan="3" class="text-end"><strong>Total</strong></td>
-                        <td>{{ invoice.order.total }}</td>
+                        <td>&#8358; {{ invoice.order.total }}</td>
                     </tr>
                 </tbody>
             </table>

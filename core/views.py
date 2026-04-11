@@ -12,6 +12,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum
 from urllib.parse import urlparse, parse_qs
+
+from django.db.models import Q
 # -------------------------------
 # Authentication
 # -------------------------------
@@ -195,7 +197,7 @@ def home(request):
 
         if file:
             DemoVideo.objects.create(video_file=file)
-            return redirect("homepage")
+            return redirect("home")
 
     # 👇 ADD THIS
     blogs = Blog.objects.all().order_by('-created_at')[:3]
@@ -212,6 +214,20 @@ def home(request):
 @login_required
 def product_list(request):
     products = Product.objects.filter(business=request.user.profile.business)
+    query = request.GET.get('q')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+    start_date = request.GET.get(start_date)
+    end_date = request.GET.get(end_date)
+    
+    if start_date:
+        products = Product.objects.filter(created_at__date__gte=start_date) 
+
+    
+    if end_date:
+        products = Product.objects.filter(created_at__date__lte=end_date) 
     return render(request, "product_list.html", {"products": products})
 
 
@@ -413,6 +429,27 @@ def order_list(request):
     orders = Order.objects.filter(business=business)\
                           .select_related("customer")\
                           .order_by("-created_at")
+    
+    query = request.GET.get('q')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    if query:
+        orders = orders.filter(
+        Q(order_number__icontains=query) |
+        Q(customer__name__icontains=query)
+    )
+    
+    
+    start_date = request.GET.get(start_date)
+    end_date = request.GET.get(end_date)
+    
+    if start_date:
+        orders = Order.objects.filter(created_at__date__gte=start_date) 
+
+    
+    if end_date:
+        orders = Order.objects.filter(created_at__date__lte=end_date) 
 
     return render(request, "order_list.html", {
         "orders": orders
@@ -530,13 +567,24 @@ def invoice_view(request, order_id):
 # -------------------------------
 def blog_view(request):
     posts = Blog.objects.all().order_by('-created_at')
+    query = request.GET.get('q')
+    if query:
+        posts = Blog.objects.filter(title__icontains=query)
     return render(request, "blog.html", {"blogs": posts})
+
+
 
 
 def blog_detail(request, slug):
     post = get_object_or_404(Blog, slug=slug)
-    return render(request, "blog_detail.html", {"post": post})
 
+    # 🔥 RELATED POSTS (exclude current post)
+    related = Blog.objects.exclude(id=post.id).order_by('-created_at')[:3]
+
+    return render(request, "blog_detail.html", {
+        "post": post,
+        "related": related
+    })
 
 
 
@@ -711,3 +759,77 @@ def paystack_webhook(request):
 
 
 
+
+
+
+@login_required
+def report_view(request):
+    business = request.user.profile.business
+
+    # ==========================
+    # BASE QUERYSETS
+    # ==========================
+    products = Product.objects.filter(business=business)
+    orders = Order.objects.filter(business=business)
+    customers = Customer.objects.filter(business=business)
+    batches = Batch.objects.filter(business=business)
+
+    # ==========================
+    # FILTERS
+    # ==========================
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    report_type = request.GET.get("type")  # products, orders, customers, all
+
+    # --------------------------
+    # DATE FILTER (APPLY TO ALL)
+    # --------------------------
+    if start_date:
+        products = products.filter(created_at__date__gte=start_date)
+        orders = orders.filter(created_at__date__gte=start_date)
+        customers = customers.filter(created_at__date__gte=start_date)
+        batches = batches.filter(created_at__date__gte=start_date)
+
+    if end_date:
+        products = products.filter(created_at__date__lte=end_date)
+        orders = orders.filter(created_at__date__lte=end_date)
+        customers = customers.filter(created_at__date__lte=end_date)
+        batches = batches.filter(created_at__date__lte=end_date)
+
+    # ==========================
+    # REPORT TYPE FILTER
+    # ==========================
+    if report_type == "products":
+        orders = None
+        customers = None
+        batches = None
+
+    elif report_type == "orders":
+        products = None
+        customers = None
+        batches = None
+
+    elif report_type == "customers":
+        products = None
+        orders = None
+        batches = None
+
+    elif report_type == "stock":
+        products = None
+        orders = None
+        customers = None
+
+    # ==========================
+    # CONTEXT
+    # ==========================
+    context = {
+        "products": products,
+        "orders": orders,
+        "customers": customers,
+        "batches": batches,
+        "start_date": start_date,
+        "end_date": end_date,
+        "report_type": report_type,
+    }
+
+    return render(request, "report.html", context)

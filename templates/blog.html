@@ -4,12 +4,13 @@
 {% block content %}
 
 <style>
-.blog-card {
-    transition: 0.3s ease;
-}
-.blog-card:hover {
-    transform: translateY(-5px);
-}
+    .blog-card {
+        transition: 0.3s ease;
+    }
+
+    .blog-card:hover {
+        transform: translateY(-5px);
+    }
 </style>
 
 <!-- HEADER -->
@@ -21,6 +22,29 @@
         </p>
     </div>
 </section>
+<br>
+<form method="GET" class="row mb-3">
+    
+    <!-- 🔍 FILTER + DATE FORM (ADDED) -->
+    <form method="GET" class="row mb-3">
+    
+        <div class="col-md-4">
+            <label>Search BlogPost</label>
+            <input type="text" name="q" class="form-control"
+                   placeholder="Search BlogPost..."
+                   value="{{ request.GET.q|default:'' }}">
+        </div>
+    
+       
+    
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    
+    </form>
+
+
+<br>
 
 <!-- BLOG LIST -->
 <section class="container mb-5">
@@ -50,7 +74,7 @@
             </div>
         </div>
         {% empty %}
-            <p class="text-center text-muted">No blog posts available yet.</p>
+        <p class="text-center text-muted">No blog posts available yet.</p>
         {% endfor %}
 
     </div>

@@ -12,10 +12,6 @@
         <input type="text" name="name" value="{{ product.name }}" class="form-control" required>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">SKU</label>
-        <input type="text" name="sku" value="{{ product.sku }}" class="form-control" required>
-    </div>
 
     <div class="mb-3">
         <label class="form-label">Cost Price</label>
@@ -30,7 +26,7 @@
     <button type="submit" class="btn btn-warning">
         Update Product
     </button>
-
+    <a href="{% url 'product_list'%}" class="btn btn-secondary w-100 mt-3">Back to product</a>
 </form>
 
 {% endblock %}

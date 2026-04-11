@@ -6,6 +6,37 @@
     <a href="/orders/create/" class="btn btn-primary">Create Order</a>
 </div>
 
+<!-- 🔍 FILTER + DATE FORM (ADDED) -->
+<form method="GET" class="row mb-3">
+
+    <div class="col-12 col-md-4 mb-2">
+        <label>Search Order</label>
+        <input type="text" name="q" class="form-control"
+               placeholder="Search by order # or customer..."
+               value="{{ request.GET.q|default:'' }}">
+    </div>
+
+    <div class="col-6 col-md-3 mb-2">
+        <label>Start Date</label>
+        <input type="date" name="start_date" class="form-control"
+               value="{{ request.GET.start_date|default:'' }}">
+    </div>
+
+    <div class="col-6 col-md-3 mb-2">
+        <label>End Date</label>
+        <input type="date" name="end_date" class="form-control"
+               value="{{ request.GET.end_date|default:'' }}">
+    </div>
+
+    <div class="col-12 col-md-2 d-flex align-items-end mb-2">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+
+</form>
+
+
+<!-- 📱 RESPONSIVE TABLE WRAPPER (ADDED) -->
+<div class="table-responsive">
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
@@ -26,7 +57,6 @@
                 <span class="badge bg-info">{{ order.status }}</span>
             </td>
            
-         
             <td>&#8358; {{ order.total }}</td>
             <td>
                 <form method="POST" action="/orders/status/{{ order.id }}/">
@@ -42,9 +72,6 @@
             <td>
                 <!-- View Invoice Button -->
                 <a href="{% url 'invoice_view' order.id %}" class="btn btn-sm btn-info">View Invoice</a>
-
-        
-
             </td>
         </tr>
         {% empty %}
@@ -54,5 +81,6 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 
 {% endblock %}

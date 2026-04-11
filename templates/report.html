@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- 🔥 PRINT BUTTON -->
+<div class="d-flex justify-content-between mb-3">
+    <h3>Reports</h3>
+    <button onclick="window.print()" class="btn btn-success">
+        Download PDF
+    </button>
+</div>
+
+<!-- 🔍 FILTER FORM -->
+<form method="GET" class="row mb-3">
+
+    <div class="col-12 col-md-3 mb-2">
+        <label>Report Type</label>
+        <select name="type" class="form-select">
+            <option value="">All</option>
+            <option value="products" {% if report_type == 'products' %}selected{% endif %}>Products</option>
+            <option value="orders" {% if report_type == 'orders' %}selected{% endif %}>Orders</option>
+            <option value="customers" {% if report_type == 'customers' %}selected{% endif %}>Customers</option>
+            <option value="stock" {% if report_type == 'stock' %}selected{% endif %}>Stock</option>
+        </select>
+    </div>
+
+    <div class="col-6 col-md-3 mb-2">
+        <label>Start Date</label>
+        <input type="date" name="start_date" class="form-control"
+               value="{{ start_date|default:'' }}">
+    </div>
+
+    <div class="col-6 col-md-3 mb-2">
+        <label>End Date</label>
+        <input type="date" name="end_date" class="form-control"
+               value="{{ end_date|default:'' }}">
+    </div>
+
+    <div class="col-12 col-md-3 d-flex align-items-end mb-2">
+        <button class="btn btn-primary w-100">Generate Report</button>
+    </div>
+
+</form>
+
+<!-- 🧾 REPORT HEADER -->
+<div class="text-center mb-4">
+    <h2>{{ request.user.profile.business.name }}</h2>
+    <h4>Report</h4>
+    <p>
+        {% if start_date %}From: {{ start_date }}{% endif %}
+        {% if end_date %} To: {{ end_date }}{% endif %}
+    </p>
+</div>
+
+<!-- 📄 PRINTABLE CONTENT -->
+<div id="report-content">
+
+    <!-- PRODUCTS -->
+    {% if products %}
+    <div class="table-responsive mb-5">
+        <h5>Products Report</h5>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Cost Price</th>
+                    <th>Selling Price</th>
+                    <th>Stock</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>&#8358; {{ p.cost_price }}</td>
+                    <td>&#8358; {{ p.selling_price }}</td>
+                    <td>{{ p.total_stock }}</td>
+                    <td>{{ p.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- ORDERS -->
+    {% if orders %}
+    <div class="table-responsive mb-5">
+        <h5>Orders Report</h5>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                <tr>
+                    <td>{{ o.order_number }}</td>
+                    <td>{{ o.customer }}</td>
+                    <td>{{ o.status }}</td>
+                    <td>&#8358; {{ o.total }}</td>
+                    <td>{{ o.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- CUSTOMERS -->
+    {% if customers %}
+    <div class="table-responsive mb-5">
+        <h5>Customers Report</h5>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in customers %}
+                <tr>
+                    <td>{{ c.name }}</td>
+                    <td>{{ c.phone }}</td>
+                    <td>{{ c.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- STOCK -->
+    {% if batches %}
+    <div class="table-responsive mb-5">
+        <h5>Stock Report</h5>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Product</th>
+                    <th>Batch</th>
+                    <th>Quantity</th>
+                    <th>Expiry</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in batches %}
+                <tr>
+                    <td>{{ b.product.name }}</td>
+                    <td>{{ b.batch_number }}</td>
+                    <td>{{ b.quantity }}</td>
+                    <td>{{ b.expiry_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- 🖨 PRINT STYLING -->
+<style>
+@media print {
+
+    /* Hide buttons & form */
+    button,
+    form,
+    a.btn {
+        display: none !important;
+    }
+
+    /* Hide navbar/sidebar if present */
+    .navbar,
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Full width layout */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .container, .container-fluid {
+        width: 100%;
+    }
+
+    /* Table styling for print */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    table, th, td {
+        border: 1px solid #000;
+    }
+
+    th {
+        background-color: #eee !important;
+        -webkit-print-color-adjust: exact;
+    }
+
+}
+</style>
+
+{% endblock %}

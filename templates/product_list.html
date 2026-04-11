@@ -7,6 +7,36 @@
     <a href="/products/create/" class="btn btn-primary">Add Product</a>
 </div>
 
+<!-- 🔍 FILTER + DATE FORM (ADDED) -->
+<form method="GET" class="row mb-3">
+
+    <div class="col-md-4">
+        <label>Search Product</label>
+        <input type="text" name="q" class="form-control"
+               placeholder="Search product..."
+               value="{{ request.GET.q|default:'' }}">
+    </div>
+
+    <div class="col-md-3">
+        <label>Start Date</label>
+        <input type="date" name="start_date" class="form-control"
+               value="{{ request.GET.start_date|default:'' }}">
+    </div>
+
+    <div class="col-md-3">
+        <label>End Date</label>
+        <input type="date" name="end_date" class="form-control"
+               value="{{ request.GET.end_date|default:'' }}">
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+
+</form>
+
+
+
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>

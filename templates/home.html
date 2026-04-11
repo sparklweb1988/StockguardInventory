@@ -61,21 +61,20 @@
 </section>
 
 
-
 <!-- VIDEO -->
 <section class="container section-gap">
     <h2 class="text-center mb-4">See StockGuard in Action</h2>
 
     <div class="row justify-content-center">
 
-        <!-- VIDEO PLAYER (CENTERED) -->
-        <div class="col-md-8 text-center mb-4">
+        <!-- VIDEO PLAYER -->
+        <div class="col-12 text-center mb-4">
 
             {% if video and video.video_file %}
                 <div class="d-flex justify-content-center">
 
                     <video controls
-                           style="width: 100%; max-width: 750px; height: 420px;"
+                           style="width: 80%; max-width: 1000px; height: auto;"
                            class="rounded shadow">
 
                         <source src="{{ video.video_file.url }}" type="video/mp4">
@@ -92,7 +91,7 @@
         </div>
 
         <!-- UPLOAD FORM -->
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             {% if user.is_staff %}
             <div class="card p-4 shadow">
                 <h5>Upload Demo Video</h5>
@@ -111,6 +110,8 @@
 
     </div>
 </section>
+
+
 
 <!-- FEATURES -->
 <section class="container section-gap">
@@ -205,7 +206,7 @@
 
 <!-- BLOG -->
 <section class="container section-gap">
-    <h2 class="text-center mb-5">Latest Insights</h2>
+    <h2 class="text-center mb-5">Latest BlogPost</h2>
 
     <div class="row">
 
