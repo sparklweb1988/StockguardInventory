@@ -57,11 +57,11 @@ def signup(request):
         # -----------------------------
         # Create business and profile
         # -----------------------------
-        business = Business.objects.create(name=business_name)  # Use user input only
-        profile = Profile.objects.create(
-            user=user,
-            business=business
-        )
+        # business = Business.objects.create(name=business_name)  # Use user input only
+        # profile = Profile.objects.create(
+        #     user=user,
+        #     business=business
+        # )
 
         messages.success(request, "Account created successfully! You can now login.")
         return redirect('login')
