@@ -1,40 +1,7 @@
-{% extends "base.html" %}
-
-{% block content %}
-
-<div class="d-flex justify-content-between mb-3">
-    <h3>Products</h3>
-    <a href="/products/create/" class="btn btn-primary">Add Product</a>
-</div>
-
-<!-- 🔍 FILTER + DATE FORM (ADDED) -->
-<form method="GET" class="row mb-3">
-
-    <div class="col-md-4">
-        <label>Search Product</label>
-        <input type="text" name="q" class="form-control"
-               placeholder="Search product..."
-               value="{{ request.GET.q|default:'' }}">
-    </div>
-
-    <div class="col-md-3">
-        <label>Start Date</label>
-        <input type="date" name="start_date" class="form-control"
-               value="{{ request.GET.start_date|default:'' }}">
-    </div>
-
-    <div class="col-md-3">
-        <label>End Date</label>
-        <input type="date" name="end_date" class="form-control"
-               value="{{ request.GET.end_date|default:'' }}">
-    </div>
-
-    <div class="col-md-2 d-flex align-items-end">
-        <button type="submit" class="btn btn-primary w-100">Filter</button>
-    </div>
-
-</form>
-
+<!-- ========================= -->
+<!-- DESKTOP TABLE VIEW -->
+<!-- ========================= -->
+<div class="d-none d-md-block">
 
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
@@ -71,14 +38,11 @@
                 </a>
             </td>
 
-            <!-- NEW COLUMN -->
             <td>
                 {% if product.expired_stock_warning %}
                     <span class="text-danger">Expired</span>
-
                 {% elif product.expiring_soon %}
                     <span class="text-warning">Expiring Soon</span>
-
                 {% else %}
                     <span class="text-success">Safe</span>
                 {% endif %}
@@ -92,7 +56,6 @@
                 <a href="{% url 'product_delete' product.id %}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
-
         {% empty %}
         <tr>
             <td colspan="7" class="text-center">No products found.</td>
@@ -101,4 +64,73 @@
     </tbody>
 </table>
 
-{% endblock %}
+</div>
+
+
+<!-- ========================= -->
+<!-- MOBILE CARD VIEW -->
+<!-- ========================= -->
+<div class="d-block d-md-none">
+
+    {% for product in products %}
+    <div class="card mb-3 shadow-sm">
+
+        <div class="card-body">
+
+            <h5 class="card-title">{{ product.name }}</h5>
+
+            <p class="mb-1">
+                <strong>Business:</strong> {{ product.business.name }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Stock:</strong> {{ product.total_stock }}
+
+                {% if product.expired_stock_warning %}
+                    <span class="badge bg-danger ms-2">Expired</span>
+                {% endif %}
+
+                {% if product.low_stock_warning %}
+                    <span class="badge bg-warning ms-2">Low</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Status:</strong>
+
+                {% if product.expired_stock_warning %}
+                    <span class="text-danger">Expired</span>
+                {% elif product.expiring_soon %}
+                    <span class="text-warning">Expiring Soon</span>
+                {% else %}
+                    <span class="text-success">Safe</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Cost:</strong> ₦{{ product.cost_price }}
+            </p>
+
+            <p class="mb-3">
+                <strong>Selling:</strong> ₦{{ product.selling_price }}
+            </p>
+
+            <div class="d-flex gap-2">
+                <a href="/batches/{{ product.id }}/" class="btn btn-info btn-sm">
+                    Stock
+                </a>
+
+                <a href="{% url 'product_update' product.id %}" class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a href="{% url 'product_delete' product.id %}" class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
