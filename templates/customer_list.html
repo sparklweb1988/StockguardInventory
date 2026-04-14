@@ -1,96 +1,96 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 {% load static %}
-{% bloack content %}
-{% extends "base.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-between mb-3">
-    <h3>Customers</h3>
-    <a href="/customers/create/" class="btn btn-primary">Add Customer</a>
-</div>
+<div class="container">
 
-<!-- ========================= -->
-<!-- DESKTOP TABLE VIEW -->
-<!-- ========================= -->
-<div class="d-none d-md-block">
+    <div class="d-flex justify-content-between mb-3">
+        <h3>Customers</h3>
+        <a href="/customers/create/" class="btn btn-primary">Add Customer</a>
+    </div>
 
-<table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th width="160">Actions</th>
-        </tr>
-    </thead>
+    <!-- ========================= -->
+    <!-- DESKTOP TABLE VIEW -->
+    <!-- ========================= -->
+    <div class="table-responsive d-none d-md-block">
 
-    <tbody>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th width="160">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.phone }}</td>
+
+                    <td>
+                        <a href="/customers/update/{{ customer.id }}/"
+                           class="btn btn-warning btn-sm">
+                            Update
+                        </a>
+
+                        <a href="/customers/delete/{{ customer.id }}/"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No customers found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- MOBILE CARD VIEW -->
+    <!-- ========================= -->
+    <div class="d-block d-md-none mt-3">
 
         {% for customer in customers %}
-        <tr>
-            <td>{{ customer.name }}</td>
-            <td>{{ customer.phone }}</td>
+        <div class="card mb-3 shadow-sm">
 
-            <td>
-                <a href="/customers/update/{{ customer.id }}/"
-                   class="btn btn-warning btn-sm">
-                   Update
-                </a>
+            <div class="card-body">
 
-                <a href="/customers/delete/{{ customer.id }}/"
-                   class="btn btn-danger btn-sm">
-                   Delete
-                </a>
-            </td>
-        </tr>
+                <h5 class="card-title">
+                    {{ customer.name }}
+                </h5>
+
+                <p class="mb-3">
+                    <strong>Phone:</strong> {{ customer.phone }}
+                </p>
+
+                <div class="d-flex gap-2">
+                    <a href="/customers/update/{{ customer.id }}/"
+                       class="btn btn-warning btn-sm flex-fill">
+                        Update
+                    </a>
+
+                    <a href="/customers/delete/{{ customer.id }}/"
+                       class="btn btn-danger btn-sm flex-fill">
+                        Delete
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
         {% empty %}
-        <tr>
-            <td colspan="3" class="text-center">No customers found</td>
-        </tr>
+            <p class="text-center">No customers found</p>
         {% endfor %}
 
-    </tbody>
-</table>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- MOBILE CARD VIEW -->
-<!-- ========================= -->
-<div class="d-block d-md-none">
-
-    {% for customer in customers %}
-    <div class="card mb-3 shadow-sm">
-
-        <div class="card-body">
-
-            <h5 class="card-title">
-                {{ customer.name }}
-            </h5>
-
-            <p class="mb-3">
-                <strong>Phone:</strong> {{ customer.phone }}
-            </p>
-
-            <div class="d-flex gap-2">
-                <a href="/customers/update/{{ customer.id }}/"
-                   class="btn btn-warning btn-sm flex-fill">
-                   Update
-                </a>
-
-                <a href="/customers/delete/{{ customer.id }}/"
-                   class="btn btn-danger btn-sm flex-fill">
-                   Delete
-                </a>
-            </div>
-
-        </div>
     </div>
-    {% empty %}
-        <p class="text-center">No customers found</p>
-    {% endfor %}
 
 </div>
 
-{% endblock %}
 {% endblock %}

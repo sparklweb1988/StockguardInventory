@@ -1,130 +1,136 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 {% load static %}
-{% block content%}
-<!-- ========================= -->
-<!-- DESKTOP TABLE VIEW -->
-<!-- ========================= -->
-<div class="d-none d-md-block">
+{% block content %}
 
-<div class="table-responsive">
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Order #</th>
-            <th>Customer</th>
-            <th>Status</th>
-            <th>Total</th>
-            <th>Change Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+<div class="container">
 
-    <tbody>
+    <div class="d-flex justify-content-between mb-3">
+        <h3>Orders</h3>
+        <a href="/orders/create/" class="btn btn-primary">Create Order</a>
+    </div>
+
+    <!-- ========================= -->
+    <!-- DESKTOP TABLE VIEW -->
+    <!-- ========================= -->
+    <div class="table-responsive d-none d-md-block">
+
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>Change Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.order_number }}</td>
+                    <td>{{ order.customer }}</td>
+
+                    <td>
+                        {% if order.status == "paid" %}
+                            <span class="badge bg-success">Paid</span>
+                        {% elif order.status == "cancelled" %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% endif %}
+                    </td>
+
+                    <td>&#8358; {{ order.total }}</td>
+
+                    <td>
+                        <form method="POST" action="/orders/status/{{ order.id }}/">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="draft">Draft</option>
+                                <option value="paid">Paid</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <button class="btn btn-sm btn-success mt-1">Update</button>
+                        </form>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'invoice_view' order.id %}" class="btn btn-sm btn-info">
+                            View Invoice
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- MOBILE CARD VIEW -->
+    <!-- ========================= -->
+    <div class="d-block d-md-none mt-3">
+
         {% for order in orders %}
-        <tr>
-            <td>{{ order.order_number }}</td>
-            <td>{{ order.customer }}</td>
+        <div class="card mb-3 shadow-sm">
 
-            <td>
-                {% if order.status == "paid" %}
-                    <span class="badge bg-success">Paid</span>
-                {% elif order.status == "cancelled" %}
-                    <span class="badge bg-danger">Cancelled</span>
-                {% else %}
-                    <span class="badge bg-secondary">Draft</span>
-                {% endif %}
-            </td>
+            <div class="card-body">
 
-            <td>&#8358; {{ order.total }}</td>
+                <h5 class="card-title">
+                    Order #{{ order.order_number }}
+                </h5>
 
-            <td>
-                <form method="POST" action="/orders/status/{{ order.id }}/">
+                <p class="mb-1">
+                    <strong>Customer:</strong> {{ order.customer }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Total:</strong> ₦{{ order.total }}
+                </p>
+
+                <p class="mb-2">
+                    <strong>Status:</strong>
+
+                    {% if order.status == "paid" %}
+                        <span class="badge bg-success">Paid</span>
+                    {% elif order.status == "cancelled" %}
+                        <span class="badge bg-danger">Cancelled</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Draft</span>
+                    {% endif %}
+                </p>
+
+                <form method="POST" action="/orders/status/{{ order.id }}/" class="mb-2">
                     {% csrf_token %}
-                    <select name="status" class="form-select form-select-sm">
+
+                    <select name="status" class="form-select form-select-sm mb-2">
                         <option value="draft">Draft</option>
                         <option value="paid">Paid</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
-                    <button class="btn btn-sm btn-success mt-1">Update</button>
-                </form>
-            </td>
 
-            <td>
-                <a href="{% url 'invoice_view' order.id %}" class="btn btn-sm btn-info">
+                    <button class="btn btn-success btn-sm w-100">
+                        Update Status
+                    </button>
+                </form>
+
+                <a href="{% url 'invoice_view' order.id %}" class="btn btn-info btn-sm w-100">
                     View Invoice
                 </a>
-            </td>
-        </tr>
 
-        {% empty %}
-        <tr>
-            <td colspan="6" class="text-center">No orders found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
-
-</div>
-
-
-<!-- ========================= -->
-<!-- MOBILE CARD VIEW -->
-<!-- ========================= -->
-<div class="d-block d-md-none">
-
-    {% for order in orders %}
-    <div class="card mb-3 shadow-sm">
-
-        <div class="card-body">
-
-            <h5 class="card-title">
-                Order #{{ order.order_number }}
-            </h5>
-
-            <p class="mb-1">
-                <strong>Customer:</strong> {{ order.customer }}
-            </p>
-
-            <p class="mb-1">
-                <strong>Total:</strong> ₦{{ order.total }}
-            </p>
-
-            <p class="mb-2">
-                <strong>Status:</strong>
-
-                {% if order.status == "paid" %}
-                    <span class="badge bg-success">Paid</span>
-                {% elif order.status == "cancelled" %}
-                    <span class="badge bg-danger">Cancelled</span>
-                {% else %}
-                    <span class="badge bg-secondary">Draft</span>
-                {% endif %}
-            </p>
-
-            <!-- STATUS UPDATE -->
-            <form method="POST" action="/orders/status/{{ order.id }}/" class="mb-2">
-                {% csrf_token %}
-
-                <select name="status" class="form-select form-select-sm mb-2">
-                    <option value="draft">Draft</option>
-                    <option value="paid">Paid</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-
-                <button class="btn btn-success btn-sm w-100">
-                    Update Status
-                </button>
-            </form>
-
-            <!-- ACTIONS -->
-            <a href="{% url 'invoice_view' order.id %}" class="btn btn-info btn-sm w-100">
-                View Invoice
-            </a>
-
+            </div>
         </div>
+        {% endfor %}
+
     </div>
-    {% endfor %}
 
 </div>
+
 {% endblock %}
