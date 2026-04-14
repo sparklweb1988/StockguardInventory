@@ -36,48 +36,66 @@
 </form>
 
 
-
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
             <th>Product Name</th>
             <th>Business Name</th>
             <th>Stock</th>
+            <th>Expiry Status</th>
             <th>Cost Price</th>
             <th>Selling Price</th>
             <th>Action</th>
         </tr>
     </thead>
+
     <tbody>
         {% for product in products %}
         <tr>
             <td>{{ product.name }}</td>
             <td>{{ product.business.name }}</td>
+
             <td>
                 {{ product.total_stock }}
 
-                {# Expired stock badge #}
                 {% if product.expired_stock_warning %}
                     <span class="badge bg-danger ms-2">Expired Stock</span>
                 {% endif %}
 
-                {# Low stock badge #}
                 {% if product.low_stock_warning %}
                     <span class="badge bg-warning ms-2">Low Stock</span>
                 {% endif %}
 
-                <a href="/batches/{{ product.id }}/" class="btn btn-sm btn-info ms-2">Manage Stock</a>
+                <a href="/batches/{{ product.id }}/" class="btn btn-sm btn-info ms-2">
+                    Manage Stock
+                </a>
             </td>
+
+            <!-- NEW COLUMN -->
+            <td>
+                {% if product.expired_stock_warning %}
+                    <span class="text-danger">Expired</span>
+
+                {% elif product.expiring_soon %}
+                    <span class="text-warning">Expiring Soon</span>
+
+                {% else %}
+                    <span class="text-success">Safe</span>
+                {% endif %}
+            </td>
+
             <td>&#8358; {{ product.cost_price }}</td>
             <td>&#8358; {{ product.selling_price }}</td>
+
             <td>
                 <a href="{% url 'product_update' product.id %}" class="btn btn-warning btn-sm">Update</a>
                 <a href="{% url 'product_delete' product.id %}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
+
         {% empty %}
         <tr>
-            <td colspan="6" class="text-center">No products found.</td>
+            <td colspan="7" class="text-center">No products found.</td>
         </tr>
         {% endfor %}
     </tbody>
