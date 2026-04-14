@@ -27,16 +27,11 @@ def signup(request):
         password = request.POST.get('password')
         business_name = request.POST.get('business_name')
 
-        # -----------------------------
-        # Validate required fields
-        # -----------------------------
+        # Validate
         if not username or not email or not password or not business_name:
             messages.error(request, "All fields are required.")
             return redirect('signup')
 
-        # -----------------------------
-        # Check for duplicates
-        # -----------------------------
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already taken.")
             return redirect('signup')
@@ -45,28 +40,33 @@ def signup(request):
             messages.error(request, "Email already registered.")
             return redirect('signup')
 
-        # -----------------------------
         # Create user
-        # -----------------------------
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
 
-        # -----------------------------
-        # Create business and profile
-        # -----------------------------
-        # business = Business.objects.create(name=business_name)  # Use user input only
-        # profile = Profile.objects.create(
-        #     user=user,
-        #     business=business
-        # )
+        # Create business from user input
+        business = Business.objects.create(name=business_name)
+
+        # Attach business to profile (created by signal)
+        profile = user.profile
+        profile.business = business
+
+        # Ensure trial is set (optional override)
+        profile.subscription_expiry = timezone.now() + timedelta(days=14)
+        profile.save()
 
         messages.success(request, "Account created successfully! You can now login.")
         return redirect('login')
 
     return render(request, "signup.html")
+
+
+
+
+
 
 def login_view(request):
     if request.method == "POST":
@@ -78,6 +78,11 @@ def login_view(request):
             return redirect('dashboard')
         messages.error(request, "Invalid credentials")
     return render(request, "login.html")
+
+
+
+
+
 
 
 def logout_view(request):
@@ -189,6 +194,9 @@ def dashboard(request):
 
 
 
+
+
+
 def home(request):
     video = DemoVideo.objects.last()
 
@@ -206,6 +214,10 @@ def home(request):
         "video": video,
         "blogs": blogs,   # ✅ THIS FIXES YOUR ISSUE
     })
+    
+    
+    
+    
     
     
 # -------------------------------
@@ -236,15 +248,26 @@ def product_list(request):
 
 
 
+
+
+
 @login_required
 def product_create(request):
     profile = request.user.profile
+    business = profile.business
 
-    # Safety check
-    if not profile.business:
-        business = Business.objects.create(name=f"{request.user.username}'s Business")
-        profile.business = business
-        profile.save()
+    # 🚫 Ensure business exists
+    if not business:
+        messages.error(request, "No business linked to your account.")
+        return redirect('dashboard')
+
+    # 🚫 Enforce product limit
+    product_count = Product.objects.filter(business=business).count()
+    limit = profile.product_limit()
+
+    if limit is not None and product_count >= limit:
+        messages.error(request, "Free plan allows only 5 products. Upgrade to continue.")
+        return redirect('product_list')
 
     if request.method == "POST":
         name = request.POST.get('name')
@@ -255,14 +278,13 @@ def product_create(request):
             name=name,
             cost_price=cost_price,
             selling_price=selling_price,
-            business=profile.business
+            business=business
         )
 
+        messages.success(request, "Product created successfully")
         return redirect('product_list')
 
     return render(request, "product_create.html")
-
-
 
 
 

@@ -211,7 +211,7 @@ class Profile(models.Model):
     subscription_expiry = models.DateTimeField(blank=True, null=True)
 
     FREE_PRODUCT_LIMIT = 5
-    FREE_TRIAL_DAYS = 7
+    FREE_TRIAL_DAYS = 14
 
     def has_active_subscription(self):
         """Paid subscription or free trial not expired."""

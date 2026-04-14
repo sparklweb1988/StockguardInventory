@@ -17,7 +17,7 @@ SECRET_KEY = "django-insecure-change-this-in-production"
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+ALLOWED_HOSTS = ["okunamid1988.pythonanywhere.com"]
 
 
 # ---------------------------------------------------
@@ -54,7 +54,7 @@ MIDDLEWARE = [
 ]
 
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ---------------------------------------------------
 # URLS / WSGI
@@ -128,20 +128,19 @@ USE_TZ = True
 # STATIC FILES
 # ---------------------------------------------------
 
-STATIC_URL = "/static/"
+STATIC_URL = '/static/'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Directory where Django will collect static files for production
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Additional directories for static files (development)
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, 'static'),
 ]
-
-
 
 
 
@@ -152,7 +151,7 @@ STATICFILES_DIRS = [
 
 
 PAYSTACK_SECRET_KEY = "sk_test_6bb11aceba825966be24302c959c0dcd5ef47dcb"
-PAYSTACK_PLAN_CODE = "PLN_wcrzai3si0ye2tf"  
+PAYSTACK_PLAN_CODE = "PLN_wcrzai3si0ye2tf"
 
 # ---------------------------------------------------
 # DEFAULT AUTO FIELD
